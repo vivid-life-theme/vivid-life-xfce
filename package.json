@@ -1,0 +1,19 @@
+{
+  "name": "vivid-life-xfce",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Vivid Life Theme port for Xfce (GTK2/GTK3/GTK4 + Xfwm4) with an auto-detecting installer.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test tools/",
+    "generate": "node tools/generate.mjs",
+    "check": "node tools/generate.mjs --check"
+  },
+  "dependencies": {
+    "@vivid-life-theme/design-system": "0.6.0"
+  },
+  "license": "MIT"
+}
