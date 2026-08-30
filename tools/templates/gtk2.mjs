@@ -32,7 +32,7 @@ class "GtkWidget" style "vivid-life-default"
 
 style "vivid-life-button" {
   bg[NORMAL]   = "${surface.bg_soft}"
-  bg[PRELIGHT] = "${border.strong}"
+  bg[PRELIGHT] = "${border.default}"
   bg[ACTIVE]   = "${accentHex}"
   fg[ACTIVE]   = "${accentOnHex}"
 }
