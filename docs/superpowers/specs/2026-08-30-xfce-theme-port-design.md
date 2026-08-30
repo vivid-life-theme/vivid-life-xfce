@@ -17,14 +17,13 @@ Port the Vivid Life Theme design system (`vivid-life-theme/vivid-life-design-sys
 
 ## Source of truth
 
-Upstream tokens are vendored as a snapshot at `tokens/tokens.json` (pinned to a specific upstream version, re-synced manually when needed). The generator never re-derives palette or accent-shade values — it reads `palette`, `variant_hues`, `accent_shade`, and each `flavors.<flavor>.{surface,text,border,state,semantic,syntax,ansi}` block exactly as upstream defines them, per the upstream README's "For downstream ports" contract.
+Upstream tokens are consumed via the published npm package, `@vivid-life-theme/design-system`, pinned in `package.json` (exact version, not a range, so a regeneration is always reproducible). The generator reads `node_modules/@vivid-life-theme/design-system/tokens.json` (or `dist/tokens.js`) and never re-derives palette or accent-shade values — it reads `palette`, `variant_hues`, `accent_shade`, and each `flavors.<flavor>.{surface,text,border,state,semantic,syntax,ansi}` block exactly as upstream defines them, per the upstream README's "For downstream ports" contract. Bumping the pinned version and re-running the generator is the entire upstream-sync workflow.
 
 ## Architecture
 
-```
+```text
 vivid-life-xfce/
-  tokens/
-    tokens.json                 vendored snapshot (+ VERSION file recording upstream version/commit)
+  package.json                 pins @vivid-life-theme/design-system as a dependency
   gtk-2.0/
     vivid-life-<flavor>-<variant>/gtkrc            (24 dirs)
   gtk-3.0/
@@ -36,7 +35,7 @@ vivid-life-xfce/
       theme.xml
       *.png                                          (button/frame assets per state)
   tools/
-    generate.mjs                 maintainer-only: tokens.json -> all 96 generated theme dirs
+    generate.mjs                 maintainer-only: reads node_modules/@vivid-life-theme/design-system -> all 96 generated theme dirs
     templates/
       gtkrc.tmpl.mjs
       gtk3.css.tmpl.mjs
@@ -50,8 +49,8 @@ vivid-life-xfce/
 
 Two independent lifecycles:
 
-- **Maintainer**: runs `node tools/generate.mjs` whenever `tokens/tokens.json` is refreshed from upstream. Commits the regenerated 96 theme directories to git. Requires Node.js and `rsvg-convert` (from `librsvg2-bin` / `librsvg`) as maintainer-only dependencies.
-- **End user**: runs `install.sh`. No Node, no generator, no network access required — it only copies pre-built files already in the repo.
+- **Maintainer**: bumps `@vivid-life-theme/design-system` in `package.json`, runs `npm install`, then `node tools/generate.mjs`. Commits the updated lockfile and the regenerated 96 theme directories to git. Requires Node.js and `rsvg-convert` (from `librsvg2-bin` / `librsvg`) as maintainer-only dependencies.
+- **End user**: runs `install.sh`. No Node, no npm, no network access required — it only copies pre-built files already in the repo.
 
 ## Generator (`tools/generate.mjs`)
 
@@ -67,7 +66,7 @@ Two independent lifecycles:
 - **Detection**: probes `pkg-config --exists gtk+-2.0`, `gtk+-3.0`, `gtk4`, and looks for `xfwm4` on `PATH` (or via `dpkg -l`/`rpm -q` as a fallback where `pkg-config` data isn't present) to determine which targets to offer. Targets with nothing detected are skipped with a note; if nothing is detected at all, warn but still let the user proceed manually.
 - **Interactive default flow**: prompts for flavor (time order: Midnight, Twilight, Dawn, Noon) then variant (Red, Orange, Yellow, Green, Blue, Purple), shows detected targets for confirmation, then installs into `~/.themes/vivid-life-<flavor>-<variant>/{gtk-2.0,gtk-3.0,gtk-4.0,xfwm4}` (only the confirmed targets).
 - **Non-interactive flags**: `--flavor=<name>`, `--variant=<name>`, `--targets=gtk2,gtk3,gtk4,xfwm4` (default: auto-detected), `--all` (install all 24 combinations for the selected/detected targets), `-y`/`--yes` (skip confirmation prompts, requires `--flavor`/`--variant` or `--all`).
-- **Post-install recommendations** (informational only, nothing auto-installed): prints the Papirus + `papirus-folders` recommendation with the variant→folder-color mapping taken from `tokens.json`'s `iconography.desktop.port_recipe`, and the Atkinson Hyperlegible Next/Mono font recommendation — each with a one-line install command for apt/dnf/pacman where the package is trivially named, otherwise a link to the source.
+- **Post-install recommendations** (informational only, nothing auto-installed): prints the Papirus + `papirus-folders` recommendation with the variant→folder-color mapping taken from the design-system package's `iconography.desktop.port_recipe`, and the Atkinson Hyperlegible Next/Mono font recommendation — each with a one-line install command for apt/dnf/pacman where the package is trivially named, otherwise a link to the source. This text is generated once at build time (from the same npm package) into a static block `install.sh` prints, so the installer itself still needs no Node/npm at runtime.
 
 ## Testing
 
@@ -81,4 +80,3 @@ Manual, per the project's existing "no build tooling for end users" convention:
 
 - Whether to add a `--check`-driven CI job once this repo has GitHub Actions doing more than Claude review/mention (out of scope now, workflows already added are review/mention only).
 - Whether a `--system` (`/usr/share/themes`) install mode is worth adding later for multi-user machines.
-- Whether to track upstream `tokens.json` via git submodule or npm dependency instead of a manual vendored snapshot, if re-sync frequency turns out to be high.
