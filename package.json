@@ -8,7 +8,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node --test tools/",
+    "test": "node --test 'tools/**/*.test.mjs'",
     "generate": "node tools/generate.mjs",
     "check": "node tools/generate.mjs --check"
   },
