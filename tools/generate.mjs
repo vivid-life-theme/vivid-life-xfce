@@ -73,7 +73,7 @@ export function renderAll(outputRoot) {
             kind,
             active,
             backgroundHex: block.surface.bg_soft,
-            glyphHex: active ? block.text.fg : block.text.fg_subtle,
+            glyphHex: block.text.fg,
           });
           const state = active ? "active" : "inactive";
           const pngPath = path.join(xfwm4Dir, `${kind}-${state}.png`);
