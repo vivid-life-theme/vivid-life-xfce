@@ -8,12 +8,13 @@ Desktop theme port of the Vivid Life design system for Xfce: GTK2, GTK3, GTK4, a
 | ------------------------------------------ | --------------------------------------------- |
 | `.claude/learnings.md`                     | TODO: add description                         |
 | `CLAUDE.md`                                | Project instructions, loaded every message    |
-| `.claude/settings.json`                    | Permissions, hooks, environment variables     |
+| `.claude/settings.json`                    | TODO: add description                         |
 | `.claude/skills/vivid-life-theme/SKILL.md` | TODO: add description                         |
-| `.githooks/pre-commit`                     | Keeps the config table above in sync          |
+| `.githooks/pre-commit`                     | TODO: add description                         |
 | `.github/workflows/claude-code-review.yml` | TODO: add description                         |
 | `.github/workflows/claude.yml`             | TODO: add description                         |
 | `.gitignore`                               | Git ignore patterns                           |
+| `package.json`                             | TODO: add description                         |
 | `scripts/sync-config-table.sh`             | Rebuilds the Key Config Files table from disk |
 
 <!-- cc-config: last-optimize-run: 2026-08-30 02a37ac337b99fa1c4fe1aa10a91b4f6a7bba6c6 -->
