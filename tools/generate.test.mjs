@@ -3,8 +3,14 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { renderAll } from "./generate.mjs";
 import { hasRsvgConvert } from "./lib/rasterize.mjs";
+
+const GENERATE_SCRIPT = fileURLToPath(
+  new URL("./generate.mjs", import.meta.url),
+);
 
 test("renderAll writes all 24 directories for gtk-2.0, gtk-3.0, gtk-4.0, xfwm4", () => {
   const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), "vlx-generate-"));
@@ -42,6 +48,33 @@ test("renderAll writes non-empty gtkrc, gtk.css, and themerc files", () => {
     "utf8",
   );
   assert.match(themerc, /^active_text_color=/m);
+});
+
+test("generate.mjs fails loudly when rsvg-convert is unavailable", (t) => {
+  // Build a PATH with every directory containing an rsvg-convert binary removed,
+  // so hasRsvgConvert() reports false without needing to mock the module.
+  const emptyBinDir = fs.mkdtempSync(path.join(os.tmpdir(), "vlx-no-rsvg-"));
+  t.after(() => fs.rmSync(emptyBinDir, { recursive: true, force: true }));
+
+  const strippedPath = (process.env.PATH ?? "")
+    .split(path.delimiter)
+    .filter((dir) => {
+      try {
+        return !fs.existsSync(path.join(dir, "rsvg-convert"));
+      } catch {
+        return true;
+      }
+    })
+    .concat(emptyBinDir)
+    .join(path.delimiter);
+
+  const result = spawnSync(process.execPath, [GENERATE_SCRIPT], {
+    encoding: "utf8",
+    env: { ...process.env, PATH: strippedPath },
+  });
+
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /rsvg-convert is required/);
 });
 
 test("renderAll writes button PNGs when rsvg-convert is available", (t) => {

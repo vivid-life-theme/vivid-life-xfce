@@ -50,7 +50,7 @@ This theme intentionally does not ship an icon set or font files — see the ups
 Theme files under `gtk-2.0/`, `gtk-3.0/`, `gtk-4.0/`, and `xfwm4/` are generated from `@vivid-life-theme/design-system` tokens — never hand-edited. To pick up an upstream design-system update:
 
 ```sh
-npm install @vivid-life-theme/design-system@<new-version>
+npm install --save-exact @vivid-life-theme/design-system@<new-version>
 npm run generate
 npm run check   # confirms committed output matches the tokens
 npm test        # runs the generator/template unit tests

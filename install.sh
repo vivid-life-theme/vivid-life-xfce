@@ -100,6 +100,11 @@ if [ -z "$TARGETS" ]; then
   exit 1
 fi
 
+# shellcheck disable=SC2086 # intentional word-splitting over a space-separated list
+for target in $TARGETS; do
+  is_in_list "$target" "$ALL_TARGETS" || die "unknown target: $target (expected one of: $ALL_TARGETS)"
+done
+
 printf 'Detected/selected targets:'
 # shellcheck disable=SC2086
 for t in $TARGETS; do printf ' %s' "$t"; done

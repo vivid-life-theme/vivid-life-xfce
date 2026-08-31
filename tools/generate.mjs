@@ -23,9 +23,15 @@ const REPO_ROOT = fileURLToPath(new URL("..", import.meta.url));
 const BUTTON_SIZE_PX = 16;
 
 export function renderAll(outputRoot) {
+  if (!hasRsvgConvert()) {
+    throw new Error(
+      "rsvg-convert is required to generate the full theme output (see README). " +
+        "Install librsvg2-bin (Debian/Ubuntu) or the equivalent for your distro.",
+    );
+  }
+
   let dirsWritten = 0;
   let filesWritten = 0;
-  const canRasterize = hasRsvgConvert();
 
   for (const { flavor, variant } of allCombinations()) {
     const block = flavorBlock(flavor);
@@ -66,20 +72,18 @@ export function renderAll(outputRoot) {
       renderThemerc(block, accentHex, accentOnHex),
     );
     filesWritten += 1;
-    if (canRasterize) {
-      for (const kind of BUTTON_KINDS) {
-        for (const active of [true, false]) {
-          const svg = renderButtonSvg({
-            kind,
-            active,
-            backgroundHex: block.surface.bg_soft,
-            glyphHex: block.text.fg,
-          });
-          const state = active ? "active" : "inactive";
-          const pngPath = path.join(xfwm4Dir, `${kind}-${state}.png`);
-          rasterizeSvgToPng(svg, BUTTON_SIZE_PX, pngPath);
-          filesWritten += 1;
-        }
+    for (const kind of BUTTON_KINDS) {
+      for (const active of [true, false]) {
+        const svg = renderButtonSvg({
+          kind,
+          active,
+          backgroundHex: block.surface.bg_soft,
+          glyphHex: block.text.fg,
+        });
+        const state = active ? "active" : "inactive";
+        const pngPath = path.join(xfwm4Dir, `${kind}-${state}.png`);
+        rasterizeSvgToPng(svg, BUTTON_SIZE_PX, pngPath);
+        filesWritten += 1;
       }
     }
     dirsWritten += 1;
@@ -105,30 +109,33 @@ function listFilesRecursive(root) {
 
 export function checkDrift(repoRoot) {
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "vlx-check-"));
-  renderAll(tempRoot);
+  try {
+    renderAll(tempRoot);
 
-  const drift = [];
-  const freshFiles = new Set(listFilesRecursive(tempRoot));
-  const committedFiles = new Set(listFilesRecursive(repoRoot));
+    const drift = [];
+    const freshFiles = new Set(listFilesRecursive(tempRoot));
+    const committedFiles = new Set(listFilesRecursive(repoRoot));
 
-  for (const relPath of freshFiles) {
-    const freshContent = fs.readFileSync(path.join(tempRoot, relPath));
-    const committedPath = path.join(repoRoot, relPath);
-    if (
-      !fs.existsSync(committedPath) ||
-      !freshContent.equals(fs.readFileSync(committedPath))
-    ) {
-      drift.push(relPath);
+    for (const relPath of freshFiles) {
+      const freshContent = fs.readFileSync(path.join(tempRoot, relPath));
+      const committedPath = path.join(repoRoot, relPath);
+      if (
+        !fs.existsSync(committedPath) ||
+        !freshContent.equals(fs.readFileSync(committedPath))
+      ) {
+        drift.push(relPath);
+      }
     }
-  }
-  for (const relPath of committedFiles) {
-    if (!freshFiles.has(relPath)) {
-      drift.push(relPath);
+    for (const relPath of committedFiles) {
+      if (!freshFiles.has(relPath)) {
+        drift.push(relPath);
+      }
     }
-  }
 
-  fs.rmSync(tempRoot, { recursive: true, force: true });
-  return drift;
+    return drift;
+  } finally {
+    fs.rmSync(tempRoot, { recursive: true, force: true });
+  }
 }
 
 function main() {
