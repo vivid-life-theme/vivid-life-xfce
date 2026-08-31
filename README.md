@@ -34,6 +34,10 @@ Run `./install.sh --help` for the full option list.
 
 After installing, select the theme in **Settings → Appearance** (GTK) and **Settings → Window Manager** (Xfwm4).
 
+## Known limitation: Xfwm4 is partial
+
+The Xfwm4 target currently ships only the `themerc` color definitions and 3 button glyphs (close/hide/maximize, active/inactive), not the full window-frame asset set (titlebar segments, corners/edges, hover/pressed button states) a complete Xfwm4 theme needs. Selecting `xfwm4` today will not produce a fully working window frame. GTK2, GTK3, and GTK4 are complete and unaffected. Follow-up work to complete Xfwm4 is tracked separately.
+
 ## GTK4 note
 
 GTK4 apps built on **libadwaita** largely ignore custom `gtk-4.0/gtk.css` stylesheets and follow libadwaita's own accent-color system instead. The GTK4 theme here is shipped best-effort for the (shrinking) set of GTK4 apps that don't opt into libadwaita theming.
