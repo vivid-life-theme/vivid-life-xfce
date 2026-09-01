@@ -9,6 +9,7 @@ Desktop theme port of the Vivid Life design system for Xfce: GTK2, GTK3, GTK4, a
 | `.claude/learnings.md`                     | TODO: add description                         |
 | `CLAUDE.md`                                | Project instructions, loaded every message    |
 | `.claude/settings.json`                    | TODO: add description                         |
+| `.claude/skills/release/SKILL.md`          | TODO: add description                         |
 | `.claude/skills/vivid-life-theme/SKILL.md` | TODO: add description                         |
 | `.githooks/pre-commit`                     | TODO: add description                         |
 | `.github/workflows/claude-code-review.yml` | TODO: add description                         |
