@@ -22,7 +22,10 @@ export function parseManifest(text) {
   if (!text) return map;
   for (const line of text.split("\n")) {
     if (!line.trim()) continue;
-    const [hash, filePath] = line.split("  ");
+    const separatorIndex = line.indexOf("  ");
+    if (separatorIndex === -1) continue;
+    const hash = line.slice(0, separatorIndex);
+    const filePath = line.slice(separatorIndex + 2);
     map.set(filePath, hash);
   }
   return map;

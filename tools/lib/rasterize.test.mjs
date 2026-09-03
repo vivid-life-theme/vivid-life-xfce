@@ -16,7 +16,7 @@ test("rasterizeSvgToPng honours non-square dimensions", (t) => {
     "out.png",
   );
   rasterizeSvgToPng(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="32" viewBox="0 0 24 32"><rect width="24" height="32" fill="#000"/></svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8" width="8" height="8"><rect width="8" height="8" fill="#000"/></svg>',
     { width: 24, height: 32 },
     outputPath,
   );
