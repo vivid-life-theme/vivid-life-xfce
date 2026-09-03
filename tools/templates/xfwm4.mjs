@@ -1,3 +1,5 @@
+import { renderXpm } from "../lib/xpm.mjs";
+
 export function renderThemerc(flavorBlock, accentHex, accentOnHex) {
   const { text } = flavorBlock;
 
@@ -46,6 +48,81 @@ export function renderButtonSvg({ kind, active, backgroundHex, glyphHex }) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
   <circle cx="8" cy="8" r="7" fill="${backgroundHex}" opacity="${opacity}" />
   <path d="${glyphPath}" stroke="${glyphHex}" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="${opacity}" />
+</svg>
+`;
+}
+
+export const TITLE_SEGMENTS = [1, 2, 3, 4, 5];
+export const EDGES = ["left", "right", "bottom"];
+
+const TITLEBAR_HEIGHT = 32;
+const FOCUS_EDGE_HEIGHT = 2;
+const CORNER_RADIUS = 8;
+const BOTTOM_CORNER_SIZE = 16;
+
+function focusEdgeColor(flavorBlock, accentHex, active) {
+  return active ? accentHex : flavorBlock.border.subtle;
+}
+
+export function renderTitleXpm({ flavorBlock, accentHex, active, segment }) {
+  const fill = flavorBlock.surface.bg_sunk;
+  const edge = focusEdgeColor(flavorBlock, accentHex, active);
+  const rows = [];
+  for (let y = 0; y < TITLEBAR_HEIGHT; y += 1) {
+    rows.push(y < TITLEBAR_HEIGHT - FOCUS_EDGE_HEIGHT ? "aa" : "bb");
+  }
+  const name = `title_${segment}_${active ? "active" : "inactive"}`;
+  return renderXpm(name, rows, { a: fill, b: edge });
+}
+
+export function renderEdgeXpm({ flavorBlock, edge, active }) {
+  const name = `${edge.replace(/-/g, "_")}_${active ? "active" : "inactive"}`;
+  return renderXpm(name, ["a"], { a: flavorBlock.border.default });
+}
+
+export function renderTopCornerSvg({ flavorBlock, accentHex, side, active }) {
+  if (side !== "left" && side !== "right") {
+    throw new Error(`Unknown side: ${side}`);
+  }
+  const fill = flavorBlock.surface.bg_sunk;
+  const edge = focusEdgeColor(flavorBlock, accentHex, active);
+  const w = CORNER_RADIUS;
+  const h = TITLEBAR_HEIGHT;
+  const edgeY = h - FOCUS_EDGE_HEIGHT;
+
+  // Drawn as the left-hand corner, then mirrored for the right.
+  const body = `<path d="M ${w} 0 L ${w} ${h} L 0 ${h} L 0 ${CORNER_RADIUS} A ${CORNER_RADIUS} ${CORNER_RADIUS} 0 0 1 ${CORNER_RADIUS} 0 Z" fill="${fill}"/>
+    <rect x="0" y="${edgeY}" width="${w}" height="${FOCUS_EDGE_HEIGHT}" fill="${edge}"/>`;
+  const wrapped =
+    side === "left"
+      ? body
+      : `<g transform="translate(${w},0) scale(-1,1)">${body}</g>`;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    ${wrapped}
+</svg>
+`;
+}
+
+export function renderBottomCornerSvg({ flavorBlock, side }) {
+  if (side !== "left" && side !== "right") {
+    throw new Error(`Unknown side: ${side}`);
+  }
+  const border = flavorBlock.border.default;
+  const s = BOTTOM_CORNER_SIZE;
+
+  // A 1px run along the outer vertical edge and along the bottom. The
+  // asset is 16x16 so the corner-resize grab region is 16px; everything
+  // outside the two 1px strips stays transparent.
+  const body = `<rect x="0" y="0" width="1" height="${s}" fill="${border}"/>
+    <rect x="0" y="${s - 1}" width="${s}" height="1" fill="${border}"/>`;
+  const wrapped =
+    side === "left"
+      ? body
+      : `<g transform="translate(${s},0) scale(-1,1)">${body}</g>`;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}" viewBox="0 0 ${s} ${s}">
+    ${wrapped}
 </svg>
 `;
 }
