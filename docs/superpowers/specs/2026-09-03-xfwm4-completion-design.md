@@ -28,7 +28,7 @@ Defects found while surveying the 48 Xfwm4 themes installed under `/usr/share/th
 
 ## Non-goals
 
-- No change to the GTK2, GTK3, or GTK4 stylesheets. A pair-by-pair audit of the GTK3 template across all 24 combinations found no AA violations: the worst non-exempt pair is `fg_muted` on `bg_soft` at 5.27:1 (Twilight). The GTK templates are in scope for the contrast test, not for edits.
+- No change to the GTK2, GTK3, or GTK4 stylesheets. A pair-by-pair audit of all three templates across all 24 combinations found no AA violations; the worst non-exempt pairs are `fg_muted` on `bg_soft` at 5.27:1 (GTK3, Twilight) and `fg` on `border.default` at 6.42:1 (GTK2 button prelight and GTK4 `button:hover`, Twilight). The GTK templates are in scope for the contrast test, not for edits.
 - No icon or font assets, per the parent spec.
 - No `--system` install mode, no CI wiring, no automated screenshot diffing.
 - No HiDPI asset variants. Xfwm4 themes at 2× are a separate concern (see Future work).
@@ -60,9 +60,11 @@ Coordinates below are in device pixels at 1×.
 
 **Titlebar** — 32px tall, filled `surface.bg_sunk`. The bottom 2px carry the focus edge: `accent` on `-active`, `-prelight` and `-pressed` assets; `border.subtle` on `-inactive` assets. Title text is `text.fg` when focused and `text.fg_muted` when not, left-aligned, offset 12px (`spacing.3`) from the frame edge.
 
-**Corners** — top-left and top-right are 8×32, with an 8px radius carved out of the top outer corner (transparent outside the curve) and `surface.bg_sunk` elsewhere, plus the 2px focus edge at the bottom. Bottom corners are square.
+**Corners** — top-left and top-right are 8×32, with an 8px radius carved out of the top outer corner (transparent outside the curve) and `surface.bg_sunk` elsewhere, plus the 2px focus edge at the bottom.
 
-**Edges** — left, right, bottom, bottom-left and bottom-right are 1×1 solid `border.default`.
+**Edges** — left, right and bottom are 1×1 solid `border.default`.
+
+**Bottom corners** — 16×16 with alpha: a 1px `border.default` run along the two outer edges, transparent elsewhere. They look identical to a 1px border but are deliberately not 1×1, because Xfwm4 derives the corner-resize grab region from the corner asset's dimensions — a 1×1 bottom corner yields a 1px diagonal-resize target, which is the standing usability complaint about Greybird (1×1) versus Daloa (16×16). 16px matches Daloa and `spacing.4`. Confirming that the grab region follows the asset size is an item in the manual verification checklist.
 
 **Buttons** — 24×32 canvas, opaque, filled `surface.bg_sunk` with the 2px focus edge at the bottom. Centred within it is a 24×24 cell containing the ghost backing and glyph:
 
@@ -86,12 +88,13 @@ Button assets are opaque rather than alpha-masked so they render correctly regar
 | Group           | Files                                                                       | Count | Dimensions | Format |
 | --------------- | --------------------------------------------------------------------------- | ----- | ---------- | ------ |
 | Title segments  | `title-{1,2,3,4,5}-{active,inactive}`                                       | 10    | 2×32       | XPM    |
-| Edges           | `{left,right,bottom,bottom-left,bottom-right}-{active,inactive}`            | 10    | 1×1        | XPM    |
-| Corners         | `top-{left,right}-{active,inactive}`                                        | 4     | 8×32       | PNG    |
+| Edges           | `{left,right,bottom}-{active,inactive}`                                     | 6     | 1×1        | XPM    |
+| Top corners     | `top-{left,right}-{active,inactive}`                                        | 4     | 8×32       | PNG    |
+| Bottom corners  | `bottom-{left,right}-{active,inactive}`                                     | 4     | 16×16      | PNG    |
 | Buttons         | `{menu,stick,shade,hide,maximize,close}-{active,inactive,prelight,pressed}` | 24    | 24×32      | PNG    |
 | Toggled buttons | `{stick,shade,maximize}-toggled-{active,inactive,prelight,pressed}`         | 12    | 24×32      | PNG    |
 
-XPM is chosen for every solid-colour asset because it is a plain-text format — the idiom real themes already use (Greybird's `left-active.xpm` is 78 bytes of text). Text assets byte-compare reliably, diff readably, and are unaffected by rasteriser versions. Only the anti-aliased assets (40 per theme, ~500 KB across the repo) are PNG.
+XPM is chosen for every solid-colour asset because it is a plain-text format — the idiom real themes already use (Greybird's `left-active.xpm` is 78 bytes of text). Text assets byte-compare reliably, diff readably, and are unaffected by rasteriser versions. Only the anti-aliased assets (44 per theme, ~560 KB across the repo) are PNG.
 
 ### Glyph mapping
 
@@ -156,6 +159,8 @@ Drop-shadow values are mapped from `shadows.lg` (`0 12px 32px rgba(0,0,0,0.18)`)
 
 **`tools/generate.mjs`** — writes the 60 Xfwm4 assets per combination and the `index/` output, and records the asset manifest described below.
 
+`renderAll` must also make PNG writing **idempotent across rasteriser versions**. Moving the drift check onto SVG hashes fixes `npm run check`, but not `git diff`: a bare `renderAll` re-rasterises unconditionally, so a maintainer whose librsvg differs would rewrite all ~960 PNGs with different bytes and identical meaning — and the README's regeneration workflow ends in `git add -A && git commit`. So a PNG is rewritten only when it is missing, fails its signature check, or its manifest hash has changed; otherwise it is left alone. This makes generator output a function of the tokens rather than of the machine, which is the property the manifest is meant to buy. A `--force-raster` flag re-rasterises everything unconditionally, for the case where the rasteriser output itself needs refreshing.
+
 ## Drift check
 
 `checkDrift` splits by asset class:
@@ -180,11 +185,13 @@ Generated to `index/vivid-life-<flavor>-<variant>/index.theme`. `index/` is a fi
 `tools/lib/contrast.test.mjs` iterates `allCombinations()` and asserts ≥ 4.5:1 for every foreground/background pair the four templates emit, including:
 
 - Xfwm4: title text (`fg` on `bg_sunk`, `fg_muted` on `bg_sunk`), and each button state's glyph against its own backing.
-- GTK2/3/4: `fg` on `bg` / `bg_soft` / `bg_sunk` / `bg_overlay`, `fg_muted` on `bg_soft`, `accent_on` on `accent` (all 24), `accent_on` on `semantic.danger`.
+- GTK2/3/4: `fg` on `bg` / `bg_soft` / `bg_sunk` / `bg_overlay` / `border.default`, `fg_muted` on `bg_soft`, `accent_on` on `accent` (all 24), `accent_on` on `semantic.danger`.
+
+GTK3's `button:hover` uses `shade(@vl_bg_soft, 1.08)` rather than a token. The test models GTK's `shade()` as a multiply on HSL lightness with clamping, which is what GTK implements; the pair resolves to 6.42:1 at worst (Twilight). GTK4 expresses the same hover state as `@vl_border` and GTK2 as `bg[PRELIGHT] = border.default`. The inconsistency between the three templates is pre-existing and out of scope here, but the test asserts all three forms.
 
 One documented exemption: pairs involving `text.fg_disabled`. WCAG 1.4.3 excludes text that is part of an inactive user-interface component, and the design system's own disabled treatment relies on that. The exemption is a named list in the test, not a blanket skip, so a new disabled pair has to be added deliberately.
 
-The audit that informed this section found the GTK templates already compliant, so the test is expected to pass on its first run against everything except the Xfwm4 `inactive_text_color` value this design changes.
+The audit that informed this section covered all three GTK templates pair by pair and found them already compliant, so the test is expected to pass on its first run against everything except the Xfwm4 `inactive_text_color` value this design changes. No GTK stylesheet edits are needed to make it pass.
 
 ## Installer changes
 
@@ -202,7 +209,7 @@ The audit that informed this section found the GTK templates already compliant, 
 - `node --test` over `tools/` — unit tests for the new XPM writer, glyph loader, button matrix, corner and title renderers, `index.theme` renderer, and the contrast assertions.
 - `npm run check` — drift, under the split scheme above.
 - `shellcheck install.sh`.
-- Manual verification, per the parent spec: install a combination, select it in **Settings → Window Manager**, and confirm the frame renders, the focus edge appears and disappears with focus, hover and press states respond on all six buttons, `stick`/`shade`/`maximize` toggle to their alternate glyphs, and the drop shadow falls below the window.
+- Manual verification, per the parent spec: install a combination, select it in **Settings → Window Manager**, and confirm the frame renders, the focus edge appears and disappears with focus, hover and press states respond on all six buttons, `stick`/`shade`/`maximize` toggle to their alternate glyphs, the drop shadow falls below the window, and dragging a bottom corner starts a diagonal resize across roughly 16px rather than a 1px sliver — the last of these confirms that Xfwm4 derives the grab region from the corner asset's dimensions.
 
 ## Future work
 
