@@ -6,14 +6,14 @@ export function hasRsvgConvert() {
   return result.status === 0;
 }
 
-export function rasterizeSvgToPng(svgContent, sizePx, outputPath) {
+export function rasterizeSvgToPng(svgContent, size, outputPath) {
   const result = spawnSync(
     "rsvg-convert",
     [
       "--width",
-      String(sizePx),
+      String(size.width),
       "--height",
-      String(sizePx),
+      String(size.height),
       "--output",
       outputPath,
     ],
@@ -21,7 +21,7 @@ export function rasterizeSvgToPng(svgContent, sizePx, outputPath) {
   );
   if (result.status !== 0) {
     throw new Error(
-      `rsvg-convert failed (exit ${result.status}): ${result.stderr}`,
+      `rasterizeSvgToPng failed (exit ${result.status}): ${result.stderr}`,
     );
   }
 }
