@@ -22,3 +22,20 @@ test("targetOutputDir builds the full path", () => {
     path.join("/tmp/out", "gtk-3.0", "vivid-life-dawn-blue"),
   );
 });
+
+import { INDEX_DIR, OUTPUT_DIRS } from "./paths.mjs";
+
+test("OUTPUT_DIRS adds index/ to the four targets", () => {
+  assert.equal(INDEX_DIR, "index");
+  assert.deepEqual(OUTPUT_DIRS, [
+    "gtk-2.0",
+    "gtk-3.0",
+    "gtk-4.0",
+    "xfwm4",
+    "index",
+  ]);
+});
+
+test("TARGETS is unchanged so installer flags keep their vocabulary", () => {
+  assert.equal(TARGETS.includes("index"), false);
+});
