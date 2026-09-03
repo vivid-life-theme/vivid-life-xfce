@@ -83,7 +83,7 @@ Button assets are opaque rather than alpha-masked so they render correctly regar
 
 ## Asset inventory
 
-60 files per theme directory, 1440 in total.
+60 assets per theme directory — 61 files including `themerc` — and 1440 assets in total.
 
 | Group           | Files                                                                       | Count | Dimensions | Format |
 | --------------- | --------------------------------------------------------------------------- | ----- | ---------- | ------ |
