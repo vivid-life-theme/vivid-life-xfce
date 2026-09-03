@@ -5,3 +5,6 @@ node_modules/
 
 # Brainstorming visual companion (superpowers)
 .superpowers/
+
+# Worktrees created by Claude Code
+.claude/worktrees/
