@@ -47,7 +47,9 @@ function shade(hex, factor) {
   return `#${toByte(hue(p, q, h + 1 / 3))}${toByte(hue(p, q, h))}${toByte(hue(p, q, h - 1 / 3))}`;
 }
 
-// Every foreground/background pair the four templates emit.
+// The foreground/background pairs asserted by this suite. Not every pair
+// the templates emit is listed — see the per-block comments below for what
+// each group covers and which template(s) it applies to.
 // Pairs involving text.fg_disabled are exempt: WCAG 1.4.3 excludes text
 // that is part of an inactive user-interface component. The exemption is
 // this named list, not a blanket skip on the token.
@@ -58,23 +60,51 @@ function pairsFor(flavor, variant) {
   const sunk = b.surface.bg_sunk;
 
   return [
-    // Xfwm4 frame
+    // Xfwm4 frame. Note: today's tools/generate.mjs still renders buttons
+    // the legacy way (text.fg on surface.bg_soft, inactive state via
+    // opacity: 0.5), so the prelight/pressed pairs below assert values
+    // nothing currently emits. Plan Task 8 deletes that renderer in favour
+    // of buttonStateColors, which draws rest/inactive as fg_muted on a bare
+    // bg_sunk canvas, prelight as fg on composite(bg_sunk, state.hover),
+    // and pressed as fg on composite(bg_sunk, state.active); Task 10 then
+    // generates the prelight/pressed assets this suite is gating for.
+    // surface.bg_sunk is the titlebar background per the design spec
+    // (derived from the design system's own chrome bar) — not yet stated
+    // in any other file in this repo.
     ["xfwm4 active title", b.text.fg, sunk],
     ["xfwm4 inactive title", b.text.fg_muted, sunk],
     ["xfwm4 button rest glyph", b.text.fg_muted, sunk],
     ["xfwm4 button inactive glyph", b.text.fg_muted, sunk],
     ["xfwm4 button prelight glyph", b.text.fg, composite(sunk, b.state.hover)],
     ["xfwm4 button pressed glyph", b.text.fg, composite(sunk, b.state.active)],
-    // GTK, all three templates
+    // GTK. Shared across gtk2/gtk3/gtk4 except where noted.
     ["gtk window text", b.text.fg, b.surface.bg],
     ["gtk button text", b.text.fg, b.surface.bg_soft],
     ["gtk entry text", b.text.fg, sunk],
+    // gtk3 only — gtk2.mjs has no menu/tooltip styling.
     ["gtk menu/tooltip text", b.text.fg, b.surface.bg_overlay],
+    // gtk3 only — notebook styling exists only in gtk3.mjs.
     ["gtk notebook tab text", b.text.fg_muted, b.surface.bg_soft],
     ["gtk2/gtk4 button prelight", b.text.fg, b.border.default],
     ["gtk3 button hover", b.text.fg, shade(b.surface.bg_soft, 1.08)],
     ["gtk accent button text", on, accent],
+    // gtk3 only — destructive-action exists only in gtk3.mjs.
     ["gtk destructive button text", on, b.semantic.danger],
+    // gtk3.mjs composites these over whatever is behind them. GTK's
+    // alpha(colour, f) becomes an #rrggbbaa overlay: 0.35 -> 59, 0.2 -> 33.
+    // *:selected has no single backdrop — window is bg, entry/view is
+    // bg_sunk — so both are asserted.
+    [
+      "gtk3 selection over window",
+      b.text.fg,
+      composite(b.surface.bg, `${accent}59`),
+    ],
+    ["gtk3 selection over entry", b.text.fg, composite(sunk, `${accent}59`)],
+    [
+      "gtk3 menuitem hover",
+      b.text.fg,
+      composite(b.surface.bg_overlay, `${accent}33`),
+    ],
   ];
 }
 
@@ -95,7 +125,12 @@ test("the fg_disabled exemption is recorded, not silently skipped", () => {
   // component). Asserted as a known failure so that if the design system
   // ever raises fg_disabled, this test tells us the exemption can go.
   const midnight = flavorBlock("midnight");
+  const ratio = contrastRatio(
+    midnight.text.fg_disabled,
+    midnight.surface.bg_soft,
+  );
   assert.ok(
-    contrastRatio(midnight.text.fg_disabled, midnight.surface.bg_soft) < AA,
+    ratio < AA,
+    `fg_disabled on bg_soft: ${midnight.text.fg_disabled} on ${midnight.surface.bg_soft} is ${ratio.toFixed(2)}:1, expected below ${AA}:1`,
   );
 });
