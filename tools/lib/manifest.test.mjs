@@ -45,11 +45,16 @@ test("parseManifest treats missing or empty input as no entries", () => {
   assert.equal(parseManifest(undefined).size, 0);
 });
 
-test("isPng recognises the signature and rejects anything else", () => {
+test("isPng requires a complete IHDR, not just the signature", () => {
   const signature = Buffer.from([
     0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
   ]);
-  assert.equal(isPng(signature), true);
+  // A truncated file — an interrupted write, a bad merge — carries the
+  // signature but no dimensions. Rejecting it here is what lets checkDrift
+  // report it as drift instead of throwing a RangeError out of readUInt32BE.
+  assert.equal(isPng(signature), false);
+  assert.equal(isPng(Buffer.concat([signature, Buffer.alloc(15)])), false);
+  assert.equal(isPng(Buffer.concat([signature, Buffer.alloc(16)])), true);
   assert.equal(isPng(Buffer.from("not a png")), false);
   assert.equal(isPng(Buffer.alloc(0)), false);
 });

@@ -90,21 +90,26 @@ function pairsFor(flavor, variant) {
     ["gtk accent button text", on, accent],
     // gtk3 only — destructive-action exists only in gtk3.mjs.
     ["gtk destructive button text", on, b.semantic.danger],
-    // gtk3.mjs composites these over whatever is behind them. GTK's
-    // alpha(colour, f) becomes an #rrggbbaa overlay: 0.35 -> 59, 0.2 -> 33.
-    // *:selected has no single backdrop — window is bg, entry/view is
-    // bg_sunk — so both are asserted.
-    [
-      "gtk3 selection over window",
-      b.text.fg,
-      composite(b.surface.bg, `${accent}59`),
-    ],
-    ["gtk3 selection over entry", b.text.fg, composite(sunk, `${accent}59`)],
+    // *:selected is a universal selector with no single backdrop, so
+    // gtk3.mjs paints it with the opaque state.selection token rather than
+    // a translucent accent. One determinate pair, not four speculative ones.
+    ["gtk3 selection", b.text.fg, b.state.selection],
+    // gtk3.mjs composites this one over whatever is behind it. GTK's
+    // alpha(colour, f) becomes an #rrggbbaa overlay: 0.2 -> 33. menuitem
+    // paints bg_overlay itself, so this backdrop is determinate.
     [
       "gtk3 menuitem hover",
       b.text.fg,
       composite(b.surface.bg_overlay, `${accent}33`),
     ],
+    // gtk3.mjs sets .warning/.error/.success as foregrounds with no
+    // background of their own, so they inherit whichever surface the
+    // ancestor painted. All four are asserted.
+    ...["bg", "bg_sunk", "bg_soft", "bg_overlay"].flatMap((surf) => [
+      [`gtk3 warning text on ${surf}`, b.semantic.warning, b.surface[surf]],
+      [`gtk3 error text on ${surf}`, b.semantic.danger, b.surface[surf]],
+      [`gtk3 success text on ${surf}`, b.semantic.success, b.surface[surf]],
+    ]),
   ];
 }
 

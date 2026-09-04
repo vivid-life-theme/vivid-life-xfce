@@ -163,6 +163,43 @@ test("buttonStateColors' edge matches renderTitleXpm's edge for the same flavour
   }
 });
 
+test("the focus edge sits at the same y and height in every renderer", () => {
+  // Colour agreement is not enough: the button slots, the title segments
+  // and the top corners each paint the edge independently, so a change to
+  // one renderer's geometry would step the edge mid-titlebar.
+  const block = flavorBlock("midnight");
+  const accent = resolveAccent("midnight", "blue");
+
+  const button = renderButtonSvg({
+    flavorBlock: block,
+    accentHex: accent,
+    glyphMarkup: "<path/>",
+    state: "active",
+  });
+  const corner = renderTopCornerSvg({
+    flavorBlock: block,
+    accentHex: accent,
+    side: "left",
+    active: true,
+  });
+  const title = renderTitleXpm({
+    flavorBlock: block,
+    accentHex: accent,
+    active: true,
+    segment: 1,
+  });
+
+  // Both SVG renderers put the edge rect at y=30 with height=2.
+  assert.match(button, /<rect y="30"[^>]*height="2"/);
+  assert.match(corner, /y="30"[^>]*height="2"/);
+
+  // The XPM is 32 rows; the last two are the edge and the rest are fill.
+  const rows = title.match(/"[ab]+"/g).map((r) => r.slice(1, -1));
+  assert.equal(rows.length, 32);
+  assert.deepEqual(rows.slice(30), ["bb", "bb"]);
+  assert.ok(rows.slice(0, 30).every((r) => r === "aa"));
+});
+
 test("renderButtonSvg produces an opaque 24x32 canvas with the glyph inlined", () => {
   const svg = renderButtonSvg({
     flavorBlock: flavorBlock("noon"),

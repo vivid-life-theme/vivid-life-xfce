@@ -111,8 +111,16 @@ export function buttonStateColors(flavorBlock, accentHex, state) {
   }
 }
 
+// The button slots, the title segments and the top corners all paint the
+// same 32px bar and the same 2px focus edge along its bottom. They must
+// derive that geometry from one place or the edge steps at each button.
+const TITLEBAR_HEIGHT = 32;
+const FOCUS_EDGE_HEIGHT = 2;
+const CORNER_RADIUS = 8;
+const BOTTOM_CORNER_SIZE = 16;
+
 const BUTTON_WIDTH = 24;
-const BUTTON_HEIGHT = 32;
+const BUTTON_HEIGHT = TITLEBAR_HEIGHT;
 const BUTTON_CELL = 24;
 const BUTTON_CELL_Y = (BUTTON_HEIGHT - BUTTON_CELL) / 2;
 const GLYPH_BOX = 16;
@@ -134,7 +142,7 @@ export function renderButtonSvg({
   // 16px glyph box (16/24) with stroke-width 2.25 rasterises at 1.5px.
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${BUTTON_WIDTH}" height="${BUTTON_HEIGHT}" viewBox="0 0 ${BUTTON_WIDTH} ${BUTTON_HEIGHT}">
   <rect width="${BUTTON_WIDTH}" height="${BUTTON_HEIGHT}" fill="${flavorBlock.surface.bg_sunk}"/>
-  <rect y="${BUTTON_HEIGHT - 2}" width="${BUTTON_WIDTH}" height="2" fill="${colors.edge}"/>
+  <rect y="${BUTTON_HEIGHT - FOCUS_EDGE_HEIGHT}" width="${BUTTON_WIDTH}" height="${FOCUS_EDGE_HEIGHT}" fill="${colors.edge}"/>
 ${backing}  <g transform="translate(4,${GLYPH_OFFSET}) scale(0.66667)" fill="none" stroke="${colors.glyph}" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">${glyphMarkup}</g>
 </svg>
 `;
@@ -142,11 +150,6 @@ ${backing}  <g transform="translate(4,${GLYPH_OFFSET}) scale(0.66667)" fill="non
 
 export const TITLE_SEGMENTS = [1, 2, 3, 4, 5];
 export const EDGES = ["left", "right", "bottom"];
-
-const TITLEBAR_HEIGHT = 32;
-const FOCUS_EDGE_HEIGHT = 2;
-const CORNER_RADIUS = 8;
-const BOTTOM_CORNER_SIZE = 16;
 
 function focusEdgeColor(flavorBlock, accentHex, active) {
   return active ? accentHex : flavorBlock.border.subtle;

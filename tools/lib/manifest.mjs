@@ -31,9 +31,15 @@ export function parseManifest(text) {
   return map;
 }
 
+// A complete IHDR is required, not just the signature: every caller means
+// "a PNG we can actually use". Accepting a truncated file here would let
+// pngDimensions read past the end of the buffer and throw, so checkDrift
+// would crash with a stack trace instead of naming the offending file.
+const PNG_HEADER_BYTES = 24;
+
 export function isPng(buffer) {
   return (
-    buffer.length >= PNG_SIGNATURE.length &&
+    buffer.length >= PNG_HEADER_BYTES &&
     buffer.subarray(0, PNG_SIGNATURE.length).equals(PNG_SIGNATURE)
   );
 }

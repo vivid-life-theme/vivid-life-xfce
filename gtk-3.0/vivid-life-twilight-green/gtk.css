@@ -13,6 +13,7 @@
 @define-color vl_border_strong #0a0a0a;
 @define-color vl_accent #84cc16;
 @define-color vl_accent_on #171717;
+@define-color vl_selection #5b5b5b;
 @define-color vl_success #bef264;
 @define-color vl_warning #fef9c3;
 @define-color vl_danger #fee2e2;
@@ -149,9 +150,13 @@ tooltip {
   border: 1px solid @vl_border;
 }
 
+/* Opaque on purpose: *:selected is a universal selector, so a translucent
+   background composites over whatever ancestor painted (bg, bg_sunk,
+   bg_soft or bg_overlay) and its contrast cannot be verified. The design
+   system's state.selection token gives selection one determinate colour. */
 selection,
 *:selected {
-  background-color: alpha(@vl_accent, 0.35);
+  background-color: @vl_selection;
   color: @vl_fg;
 }
 

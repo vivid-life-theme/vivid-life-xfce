@@ -41,6 +41,9 @@ import { rasterizeSvgToPng, hasRsvgConvert } from "./lib/rasterize.mjs";
 
 const REPO_ROOT = fileURLToPath(new URL("..", import.meta.url));
 const MANIFEST_PATH = path.join("xfwm4", "assets.manifest");
+// listFilesRecursive builds posix-separated relative paths, so the skip
+// there compares against this rather than MANIFEST_PATH.
+const MANIFEST_REL = path.posix.join("xfwm4", "assets.manifest");
 
 const BUTTON_SIZE = { width: 24, height: 32 };
 const TOP_CORNER_SIZE = { width: 8, height: 32 };
@@ -198,8 +201,16 @@ function listFilesRecursive(root) {
     if (!fs.existsSync(targetPath)) continue;
     for (const entry of fs.readdirSync(targetPath)) {
       const themePath = path.join(targetPath, entry);
-      // xfwm4/assets.manifest sits beside the theme directories.
-      if (!fs.statSync(themePath).isDirectory()) continue;
+      // Skip assets.manifest by NAME, not by type: it sits beside the theme
+      // directories and is byte-compared separately below. Skipping every
+      // non-directory instead would let any other stray file at this level
+      // — an editor backup, a merge leftover — escape the drift check and
+      // ship to everyone who clones the repo.
+      if (path.posix.join(target, entry) === MANIFEST_REL) continue;
+      if (!fs.statSync(themePath).isDirectory()) {
+        results.push(path.posix.join(target, entry));
+        continue;
+      }
       for (const file of fs.readdirSync(themePath)) {
         results.push(path.posix.join(target, entry, file));
       }

@@ -251,6 +251,46 @@ test("checkDrift reports a changed text asset", (t) => {
   );
 });
 
+test("checkDrift reports a stray file beside the theme directories", (t) => {
+  if (!hasRsvgConvert()) {
+    t.skip("rsvg-convert not installed");
+    return;
+  }
+  const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), "vlx-gen-"));
+  renderAll(outputRoot);
+  assert.deepEqual(checkDrift(outputRoot), []);
+  // A merge leftover or editor backup at the same level as assets.manifest.
+  // Only assets.manifest itself may live here; anything else is stale output
+  // that would otherwise ship to everyone who clones the repo.
+  fs.writeFileSync(path.join(outputRoot, "xfwm4", "README.orig"), "stray\n");
+  assert.ok(checkDrift(outputRoot).includes("xfwm4/README.orig"));
+});
+
+test("checkDrift reports a PNG truncated below a full IHDR", (t) => {
+  if (!hasRsvgConvert()) {
+    t.skip("rsvg-convert not installed");
+    return;
+  }
+  const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), "vlx-gen-"));
+  renderAll(outputRoot);
+  const pngPath = path.join(
+    outputRoot,
+    "xfwm4",
+    "vivid-life-noon-green",
+    "menu-active.png",
+  );
+  // Signature only: enough to look like a PNG, too short to hold dimensions.
+  fs.writeFileSync(
+    pngPath,
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+  );
+  assert.ok(
+    checkDrift(outputRoot).includes(
+      "xfwm4/vivid-life-noon-green/menu-active.png",
+    ),
+  );
+});
+
 test("checkDrift ignores PNG bytes but catches a corrupt PNG", (t) => {
   if (!hasRsvgConvert()) {
     t.skip("rsvg-convert not installed");
