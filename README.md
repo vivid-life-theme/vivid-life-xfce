@@ -34,9 +34,9 @@ Run `./install.sh --help` for the full option list.
 
 After installing, select the theme in **Settings → Appearance** (GTK) and **Settings → Window Manager** (Xfwm4).
 
-## Known limitation: Xfwm4 is partial
+## Xfwm4 note: rounded corners need a compositor
 
-The Xfwm4 target currently ships only the `themerc` color definitions and 3 button glyphs (close/hide/maximize, active/inactive), not the full window-frame asset set (titlebar segments, corners/edges, hover/pressed button states) a complete Xfwm4 theme needs. Selecting `xfwm4` today will not produce a fully working window frame. GTK2, GTK3, and GTK4 are complete and unaffected. Follow-up work to complete Xfwm4 is tracked separately.
+Window frames use 8px rounded top corners. Xfwm4 has no alpha channel without compositing, so on a system with the compositor disabled those corners render as opaque wedges rather than transparent curves. Xfce 4.18 enables its compositor by default (**Settings → Window Manager Tweaks → Compositor**), so this affects only setups that have deliberately turned it off.
 
 ## GTK4 note
 
@@ -51,7 +51,7 @@ This theme intentionally does not ship an icon set or font files — see the ups
 
 ## For maintainers: regenerating themes
 
-Theme files under `gtk-2.0/`, `gtk-3.0/`, `gtk-4.0/`, and `xfwm4/` are generated from `@vivid-life-theme/design-system` tokens — never hand-edited. To pick up an upstream design-system update:
+Theme files under `gtk-2.0/`, `gtk-3.0/`, `gtk-4.0/`, `xfwm4/`, and `index/` are generated from `@vivid-life-theme/design-system` tokens — never hand-edited. Window-button glyphs are read from that package's `assets/glyphs/` at generate time, so a new glyph must land upstream and be released before it can be used here. To pick up an upstream design-system update:
 
 ```sh
 npm install --save-exact @vivid-life-theme/design-system@<new-version>
@@ -62,16 +62,20 @@ git add -A
 git commit -m "chore: sync theme output with design-system <new-version>"
 ```
 
+`xfwm4/assets.manifest` records a SHA-256 of each PNG's SVG source. `npm run check` compares that manifest and every text asset byte-for-byte, and checks only that the PNGs exist, are valid PNGs, and have the expected dimensions — PNG bytes are not portable across librsvg versions, so comparing them would report false drift on any machine whose rasteriser differs. For the same reason `npm run generate` re-rasterises a PNG only when its source hash changes; use `node tools/generate.mjs --force-raster` to rebuild every PNG unconditionally.
+
 Requires Node.js >=20 and `rsvg-convert` (`librsvg2-bin` / `librsvg2-tools` / `librsvg`) — maintainer-only; end users never need either.
 
 ## Repository layout
 
 ```text
 gtk-2.0/, gtk-3.0/, gtk-4.0/, xfwm4/   generated theme output (24 dirs each)
+index/                                  generated index.theme per combination (24 dirs)
+xfwm4/assets.manifest                   SHA-256 of each PNG's SVG source
 tools/                                  generator (Node.js, maintainer-only)
 install.sh                              end-user installer (POSIX sh)
-docs/superpowers/specs/                 design spec for this port
-docs/superpowers/plans/                 implementation plan for this port
+docs/superpowers/specs/                 design specs for this port
+docs/superpowers/plans/                 implementation plans for this port
 ```
 
 ## License
