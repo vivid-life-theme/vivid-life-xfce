@@ -51,7 +51,17 @@ This theme intentionally does not ship an icon set or font files — see the ups
 
 ## For maintainers: regenerating themes
 
-Theme files under `gtk-2.0/`, `gtk-3.0/`, `gtk-4.0/`, `xfwm4/`, and `index/` are generated from `@vivid-life-theme/design-system` tokens — never hand-edited. Window-button glyphs are read from that package's `assets/glyphs/` at generate time, so a new glyph must land upstream and be released before it can be used here. To pick up an upstream design-system update:
+Theme files under `gtk-2.0/`, `gtk-3.0/`, `gtk-4.0/`, `xfwm4/`, and `index/` are generated from `@vivid-life-theme/design-system` tokens — never hand-edited. Window-button glyphs are read from that package's `assets/glyphs/` at generate time, so a new glyph must land upstream and be released before it can be used here.
+
+After cloning — and after any pull that moves the design-system pin in `package.json` — install the pinned dependencies before running anything:
+
+```sh
+npm ci
+```
+
+Skipping this is the most likely reason `npm test` or `npm run check` fails on a tree that is otherwise correct. A stale `node_modules` missing a glyph the templates ask for fails with `Glyph "<name>" is not in the design system's assets/glyphs/`, which reads like a missing upstream release but is really just an uninstalled one.
+
+To pick up an upstream design-system update:
 
 ```sh
 npm install --save-exact @vivid-life-theme/design-system@<new-version>
