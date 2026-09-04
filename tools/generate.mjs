@@ -74,6 +74,13 @@ export function renderAll(outputRoot, options = {}) {
     return glyphCache.get(name);
   };
 
+  // 1,056 manifest entries share only 748 distinct SVG sources (title
+  // segments repeat byte-for-byte per flavor/variant/state, bottom corners
+  // don't vary with focus). Rasterising each source once per run and
+  // copying the bytes for repeats cuts rsvg-convert invocations by ~29%
+  // without touching what previous/force decide is up to date.
+  const rasterCache = new Map();
+
   function writePng(svg, size, themeDir, fileName, relDir) {
     const relPath = path.posix.join(relDir, fileName);
     const outPath = path.join(themeDir, fileName);
@@ -85,7 +92,15 @@ export function renderAll(outputRoot, options = {}) {
       previous.get(relPath) === hash &&
       fs.existsSync(outPath) &&
       isPng(fs.readFileSync(outPath));
-    if (!upToDate) rasterizeSvgToPng(svg, size, outPath);
+    if (!upToDate) {
+      const cachedPath = rasterCache.get(hash);
+      if (cachedPath) {
+        fs.copyFileSync(cachedPath, outPath);
+      } else {
+        rasterizeSvgToPng(svg, size, outPath);
+        rasterCache.set(hash, outPath);
+      }
+    }
     filesWritten += 1;
   }
 

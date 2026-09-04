@@ -14,13 +14,29 @@ const GENERATE_SCRIPT = fileURLToPath(
   new URL("./generate.mjs", import.meta.url),
 );
 
+// Five of the tests below only ever inspect a generated tree — they never
+// write into it. Building that tree once and sharing it collapses five
+// renderAll passes (each ~1,056 rsvg-convert spawns) into one. This is safe
+// ONLY because those five tests are read-only: every test after this block
+// that needs to mutate a file must build its own outputRoot with
+// fs.mkdtempSync, the way the mutating tests further down already do.
+let sharedRoot = null;
+let sharedResult = null;
+function getSharedTree() {
+  if (!sharedRoot) {
+    sharedRoot = fs.mkdtempSync(path.join(os.tmpdir(), "vlx-shared-"));
+    sharedResult = renderAll(sharedRoot);
+  }
+  return sharedRoot;
+}
+
 test("renderAll writes all 24 directories for gtk-2.0, gtk-3.0, gtk-4.0, xfwm4", (t) => {
   if (!hasRsvgConvert()) {
     t.skip("rsvg-convert not installed");
     return;
   }
-  const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), "vlx-generate-"));
-  const result = renderAll(outputRoot);
+  const outputRoot = getSharedTree();
+  const result = sharedResult;
 
   for (const target of ["gtk-2.0", "gtk-3.0", "gtk-4.0", "xfwm4"]) {
     const targetPath = path.join(outputRoot, target);
@@ -46,8 +62,7 @@ test("renderAll writes non-empty gtkrc, gtk.css, and themerc files", (t) => {
     t.skip("rsvg-convert not installed");
     return;
   }
-  const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), "vlx-generate-"));
-  renderAll(outputRoot);
+  const outputRoot = getSharedTree();
 
   const gtkrc = fs.readFileSync(
     path.join(outputRoot, "gtk-2.0", "vivid-life-midnight-purple", "gtkrc"),
@@ -100,8 +115,7 @@ test("renderAll writes all 60 Xfwm4 assets plus themerc", (t) => {
     t.skip("rsvg-convert not installed");
     return;
   }
-  const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), "vlx-gen-"));
-  renderAll(outputRoot);
+  const outputRoot = getSharedTree();
   const themeDir = path.join(outputRoot, "xfwm4", "vivid-life-midnight-purple");
   const files = fs.readdirSync(themeDir);
   // 60 assets + themerc
@@ -129,8 +143,7 @@ test("renderAll writes an index.theme per combination", (t) => {
     t.skip("rsvg-convert not installed");
     return;
   }
-  const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), "vlx-gen-"));
-  renderAll(outputRoot);
+  const outputRoot = getSharedTree();
   const indexPath = path.join(
     outputRoot,
     "index",
@@ -148,8 +161,7 @@ test("renderAll writes a manifest covering every PNG", (t) => {
     t.skip("rsvg-convert not installed");
     return;
   }
-  const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), "vlx-gen-"));
-  renderAll(outputRoot);
+  const outputRoot = getSharedTree();
   const manifest = fs.readFileSync(
     path.join(outputRoot, "xfwm4", "assets.manifest"),
     "utf8",
