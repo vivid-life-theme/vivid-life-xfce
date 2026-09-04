@@ -1,11 +1,16 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import {
   hashSource,
   renderManifest,
   parseManifest,
   isPng,
+  pngDimensions,
 } from "./manifest.mjs";
+import { rasterizeSvgToPng, hasRsvgConvert } from "./rasterize.mjs";
 
 test("hashSource is a stable lowercase hex SHA-256", () => {
   const hash = hashSource("<svg/>");
@@ -47,4 +52,24 @@ test("isPng recognises the signature and rejects anything else", () => {
   assert.equal(isPng(signature), true);
   assert.equal(isPng(Buffer.from("not a png")), false);
   assert.equal(isPng(Buffer.alloc(0)), false);
+});
+
+test("pngDimensions parses width and height from the IHDR chunk", (t) => {
+  if (!hasRsvgConvert()) {
+    t.skip("rsvg-convert not installed");
+    return;
+  }
+  const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), "vlx-manifest-"));
+  const pngPath = path.join(outputRoot, "sample.png");
+  rasterizeSvgToPng(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="8" height="32" viewBox="0 0 8 32"><rect width="8" height="32" fill="#000"/></svg>',
+    { width: 8, height: 32 },
+    pngPath,
+  );
+  const dimensions = pngDimensions(fs.readFileSync(pngPath));
+  assert.deepEqual(dimensions, { width: 8, height: 32 });
+});
+
+test("pngDimensions on a buffer that is not a PNG", () => {
+  assert.throws(() => pngDimensions(Buffer.from("not a png")));
 });

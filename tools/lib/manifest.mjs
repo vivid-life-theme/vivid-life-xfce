@@ -37,3 +37,17 @@ export function isPng(buffer) {
     buffer.subarray(0, PNG_SIGNATURE.length).equals(PNG_SIGNATURE)
   );
 }
+
+// Xfwm4 derives the corner-resize grab region from the asset's raster
+// dimensions, so the drift check must be able to see them: width is
+// bytes 16..19 of the IHDR chunk, height is bytes 20..23, both
+// big-endian uint32 (PNG spec, ISO/IEC 15948 §11.2.2).
+export function pngDimensions(buffer) {
+  if (!isPng(buffer)) {
+    throw new Error("pngDimensions: not a PNG (bad signature)");
+  }
+  return {
+    width: buffer.readUInt32BE(16),
+    height: buffer.readUInt32BE(20),
+  };
+}
