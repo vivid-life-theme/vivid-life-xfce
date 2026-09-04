@@ -6,32 +6,37 @@ import os from "node:os";
 import path from "node:path";
 import { rasterizeSvgToPng, hasRsvgConvert } from "./rasterize.mjs";
 
-const SAMPLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><circle cx="8" cy="8" r="7" fill="#ff0000" /></svg>`;
-
-test("rasterizeSvgToPng writes a non-empty PNG file", (t) => {
+test("rasterizeSvgToPng honours non-square dimensions", (t) => {
   if (!hasRsvgConvert()) {
-    t.skip("rsvg-convert not installed on this machine");
+    t.skip("rsvg-convert not installed");
     return;
   }
   const outputPath = path.join(
-    fs.mkdtempSync(path.join(os.tmpdir(), "vlx-")),
+    fs.mkdtempSync(path.join(os.tmpdir(), "vlx-raster-")),
     "out.png",
   );
-  rasterizeSvgToPng(SAMPLE_SVG, 16, outputPath);
-  const stats = fs.statSync(outputPath);
-  assert.ok(stats.size > 0);
-  const header = fs.readFileSync(outputPath).subarray(0, 8);
-  assert.deepEqual([...header.subarray(1, 4)], [0x50, 0x4e, 0x47]); // "PNG"
+  rasterizeSvgToPng(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8" width="8" height="8"><rect width="8" height="8" fill="#000"/></svg>',
+    { width: 24, height: 32 },
+    outputPath,
+  );
+  const header = fs.readFileSync(outputPath);
+  assert.deepEqual([...header.subarray(1, 4)], [0x50, 0x4e, 0x47]);
+  // IHDR width and height are big-endian uint32 at bytes 16 and 20.
+  assert.equal(header.readUInt32BE(16), 24);
+  assert.equal(header.readUInt32BE(20), 32);
 });
 
 test("rasterizeSvgToPng throws on invalid SVG", (t) => {
   if (!hasRsvgConvert()) {
-    t.skip("rsvg-convert not installed on this machine");
+    t.skip("rsvg-convert not installed");
     return;
   }
   const outputPath = path.join(
-    fs.mkdtempSync(path.join(os.tmpdir(), "vlx-")),
+    fs.mkdtempSync(path.join(os.tmpdir(), "vlx-raster-")),
     "out.png",
   );
-  assert.throws(() => rasterizeSvgToPng("not valid svg", 16, outputPath));
+  assert.throws(() =>
+    rasterizeSvgToPng("not valid svg", { width: 16, height: 16 }, outputPath),
+  );
 });

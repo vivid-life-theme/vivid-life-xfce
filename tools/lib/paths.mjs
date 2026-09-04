@@ -3,6 +3,10 @@ import path from "node:path";
 
 export const TARGETS = ["gtk-2.0", "gtk-3.0", "gtk-4.0", "xfwm4"];
 
+export const INDEX_DIR = "index";
+
+export const OUTPUT_DIRS = [...TARGETS, INDEX_DIR];
+
 export function themeDirName(flavor, variant) {
   return `vivid-life-${flavor}-${variant}`;
 }

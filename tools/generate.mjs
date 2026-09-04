@@ -8,21 +8,49 @@ import {
   resolveAccent,
   accentOn,
 } from "./lib/tokens.mjs";
-import { TARGETS, targetOutputDir } from "./lib/paths.mjs";
+import {
+  OUTPUT_DIRS,
+  INDEX_DIR,
+  targetOutputDir,
+  themeDirName,
+} from "./lib/paths.mjs";
 import { renderGtk3Css } from "./templates/gtk3.mjs";
 import { renderGtk2Gtkrc } from "./templates/gtk2.mjs";
 import { renderGtk4Css } from "./templates/gtk4.mjs";
+import { renderIndexTheme } from "./templates/index-theme.mjs";
 import {
   renderThemerc,
-  BUTTON_KINDS,
+  TITLE_SEGMENTS,
+  EDGES,
+  renderTitleXpm,
+  renderEdgeXpm,
+  renderTopCornerSvg,
+  renderBottomCornerSvg,
+  buttonMatrix,
   renderButtonSvg,
 } from "./templates/xfwm4.mjs";
+import { loadGlyph } from "./lib/glyphs.mjs";
+import {
+  hashSource,
+  renderManifest,
+  parseManifest,
+  isPng,
+  pngDimensions,
+} from "./lib/manifest.mjs";
 import { rasterizeSvgToPng, hasRsvgConvert } from "./lib/rasterize.mjs";
 
 const REPO_ROOT = fileURLToPath(new URL("..", import.meta.url));
-const BUTTON_SIZE_PX = 16;
+const MANIFEST_PATH = path.join("xfwm4", "assets.manifest");
+// listFilesRecursive builds posix-separated relative paths, so the skip
+// there compares against this rather than MANIFEST_PATH.
+const MANIFEST_REL = path.posix.join("xfwm4", "assets.manifest");
 
-export function renderAll(outputRoot) {
+const BUTTON_SIZE = { width: 24, height: 32 };
+const TOP_CORNER_SIZE = { width: 8, height: 32 };
+const BOTTOM_CORNER_SIZE = { width: 16, height: 16 };
+
+export function renderAll(outputRoot, options = {}) {
+  const force = options.force === true;
   if (!hasRsvgConvert()) {
     throw new Error(
       "rsvg-convert is required to generate the full theme output (see README). " +
@@ -30,82 +58,168 @@ export function renderAll(outputRoot) {
     );
   }
 
+  const previous = parseManifest(
+    fs.existsSync(path.join(outputRoot, MANIFEST_PATH))
+      ? fs.readFileSync(path.join(outputRoot, MANIFEST_PATH), "utf8")
+      : "",
+  );
+  const manifestEntries = [];
   let dirsWritten = 0;
   let filesWritten = 0;
+
+  // Glyph markup is identical across combinations; read each one once.
+  const glyphCache = new Map();
+  const glyphFor = (name) => {
+    if (!glyphCache.has(name)) glyphCache.set(name, loadGlyph(name));
+    return glyphCache.get(name);
+  };
+
+  function writePng(svg, size, themeDir, fileName, relDir) {
+    const relPath = path.posix.join(relDir, fileName);
+    const outPath = path.join(themeDir, fileName);
+    const hash = hashSource(svg);
+    manifestEntries.push({ path: relPath, hash });
+
+    const upToDate =
+      !force &&
+      previous.get(relPath) === hash &&
+      fs.existsSync(outPath) &&
+      isPng(fs.readFileSync(outPath));
+    if (!upToDate) rasterizeSvgToPng(svg, size, outPath);
+    filesWritten += 1;
+  }
 
   for (const { flavor, variant } of allCombinations()) {
     const block = flavorBlock(flavor);
     const accentHex = resolveAccent(flavor, variant);
     const accentOnHex = accentOn(flavor);
 
-    const gtk2Dir = targetOutputDir(outputRoot, "gtk-2.0", flavor, variant);
-    fs.mkdirSync(gtk2Dir, { recursive: true });
-    fs.writeFileSync(
-      path.join(gtk2Dir, "gtkrc"),
-      renderGtk2Gtkrc(block, accentHex, accentOnHex),
-    );
-    dirsWritten += 1;
-    filesWritten += 1;
-
-    const gtk3Dir = targetOutputDir(outputRoot, "gtk-3.0", flavor, variant);
-    fs.mkdirSync(gtk3Dir, { recursive: true });
-    fs.writeFileSync(
-      path.join(gtk3Dir, "gtk.css"),
-      renderGtk3Css(block, accentHex, accentOnHex),
-    );
-    dirsWritten += 1;
-    filesWritten += 1;
-
-    const gtk4Dir = targetOutputDir(outputRoot, "gtk-4.0", flavor, variant);
-    fs.mkdirSync(gtk4Dir, { recursive: true });
-    fs.writeFileSync(
-      path.join(gtk4Dir, "gtk.css"),
-      renderGtk4Css(block, accentHex, accentOnHex),
-    );
-    dirsWritten += 1;
-    filesWritten += 1;
+    for (const [target, render] of [
+      [
+        "gtk-2.0",
+        () => ["gtkrc", renderGtk2Gtkrc(block, accentHex, accentOnHex)],
+      ],
+      [
+        "gtk-3.0",
+        () => ["gtk.css", renderGtk3Css(block, accentHex, accentOnHex)],
+      ],
+      [
+        "gtk-4.0",
+        () => ["gtk.css", renderGtk4Css(block, accentHex, accentOnHex)],
+      ],
+      [
+        INDEX_DIR,
+        () => ["index.theme", renderIndexTheme(flavor, variant, block)],
+      ],
+    ]) {
+      const dir = targetOutputDir(outputRoot, target, flavor, variant);
+      fs.mkdirSync(dir, { recursive: true });
+      const [fileName, contents] = render();
+      fs.writeFileSync(path.join(dir, fileName), contents);
+      dirsWritten += 1;
+      filesWritten += 1;
+    }
 
     const xfwm4Dir = targetOutputDir(outputRoot, "xfwm4", flavor, variant);
+    const relDir = path.posix.join("xfwm4", themeDirName(flavor, variant));
     fs.mkdirSync(xfwm4Dir, { recursive: true });
+
     fs.writeFileSync(
       path.join(xfwm4Dir, "themerc"),
       renderThemerc(block, accentHex, accentOnHex),
     );
     filesWritten += 1;
-    for (const kind of BUTTON_KINDS) {
-      for (const active of [true, false]) {
-        const svg = renderButtonSvg({
-          kind,
-          active,
-          backgroundHex: block.surface.bg_soft,
-          glyphHex: block.text.fg,
-        });
-        const state = active ? "active" : "inactive";
-        const pngPath = path.join(xfwm4Dir, `${kind}-${state}.png`);
-        rasterizeSvgToPng(svg, BUTTON_SIZE_PX, pngPath);
+
+    for (const active of [true, false]) {
+      const suffix = active ? "active" : "inactive";
+
+      for (const segment of TITLE_SEGMENTS) {
+        fs.writeFileSync(
+          path.join(xfwm4Dir, `title-${segment}-${suffix}.xpm`),
+          renderTitleXpm({ flavorBlock: block, accentHex, active, segment }),
+        );
         filesWritten += 1;
       }
+
+      for (const edge of EDGES) {
+        fs.writeFileSync(
+          path.join(xfwm4Dir, `${edge}-${suffix}.xpm`),
+          renderEdgeXpm({ flavorBlock: block, edge, active }),
+        );
+        filesWritten += 1;
+      }
+
+      for (const side of ["left", "right"]) {
+        writePng(
+          renderTopCornerSvg({ flavorBlock: block, accentHex, side, active }),
+          TOP_CORNER_SIZE,
+          xfwm4Dir,
+          `top-${side}-${suffix}.png`,
+          relDir,
+        );
+        writePng(
+          renderBottomCornerSvg({ flavorBlock: block, side }),
+          BOTTOM_CORNER_SIZE,
+          xfwm4Dir,
+          `bottom-${side}-${suffix}.png`,
+          relDir,
+        );
+      }
     }
+
+    for (const entry of buttonMatrix()) {
+      writePng(
+        renderButtonSvg({
+          flavorBlock: block,
+          accentHex,
+          glyphMarkup: glyphFor(entry.glyph),
+          state: entry.state,
+        }),
+        BUTTON_SIZE,
+        xfwm4Dir,
+        `${entry.name}.png`,
+        relDir,
+      );
+    }
+
     dirsWritten += 1;
   }
+
+  fs.writeFileSync(
+    path.join(outputRoot, MANIFEST_PATH),
+    renderManifest(manifestEntries),
+  );
+  filesWritten += 1;
 
   return { dirsWritten, filesWritten };
 }
 
 function listFilesRecursive(root) {
   const results = [];
-  for (const target of TARGETS) {
+  for (const target of OUTPUT_DIRS) {
     const targetPath = path.join(root, target);
     if (!fs.existsSync(targetPath)) continue;
-    for (const themeDir of fs.readdirSync(targetPath)) {
-      const themePath = path.join(targetPath, themeDir);
+    for (const entry of fs.readdirSync(targetPath)) {
+      const themePath = path.join(targetPath, entry);
+      // Skip assets.manifest by NAME, not by type: it sits beside the theme
+      // directories and is byte-compared separately below. Skipping every
+      // non-directory instead would let any other stray file at this level
+      // — an editor backup, a merge leftover — escape the drift check and
+      // ship to everyone who clones the repo.
+      if (path.posix.join(target, entry) === MANIFEST_REL) continue;
+      if (!fs.statSync(themePath).isDirectory()) {
+        results.push(path.posix.join(target, entry));
+        continue;
+      }
       for (const file of fs.readdirSync(themePath)) {
-        results.push(path.join(target, themeDir, file));
+        results.push(path.posix.join(target, entry, file));
       }
     }
   }
   return results;
 }
+
+const isPngPath = (relPath) => relPath.endsWith(".png");
 
 export function checkDrift(repoRoot) {
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "vlx-check-"));
@@ -117,19 +231,51 @@ export function checkDrift(repoRoot) {
     const committedFiles = new Set(listFilesRecursive(repoRoot));
 
     for (const relPath of freshFiles) {
-      const freshContent = fs.readFileSync(path.join(tempRoot, relPath));
       const committedPath = path.join(repoRoot, relPath);
-      if (
-        !fs.existsSync(committedPath) ||
-        !freshContent.equals(fs.readFileSync(committedPath))
-      ) {
+      if (!fs.existsSync(committedPath)) {
         drift.push(relPath);
+        continue;
       }
+      if (isPngPath(relPath)) {
+        // PNG bytes are build output; the manifest is the hash-level gate.
+        // Dimensions still matter directly: Xfwm4 derives the corner-resize
+        // grab region from a corner asset's raster size, so a PNG at the
+        // wrong dimensions must be reported even though its bytes are never
+        // compared. The freshly-rendered PNG at this path is the authority
+        // for what size it should be.
+        const committedBuffer = fs.readFileSync(committedPath);
+        if (!isPng(committedBuffer)) {
+          drift.push(relPath);
+          continue;
+        }
+        const freshBuffer = fs.readFileSync(path.join(tempRoot, relPath));
+        const committedSize = pngDimensions(committedBuffer);
+        const freshSize = pngDimensions(freshBuffer);
+        if (
+          committedSize.width !== freshSize.width ||
+          committedSize.height !== freshSize.height
+        ) {
+          drift.push(relPath);
+        }
+        continue;
+      }
+      const fresh = fs.readFileSync(path.join(tempRoot, relPath));
+      if (!fresh.equals(fs.readFileSync(committedPath))) drift.push(relPath);
     }
+
     for (const relPath of committedFiles) {
       if (!freshFiles.has(relPath)) {
         drift.push(relPath);
       }
+    }
+
+    const freshManifest = fs.readFileSync(path.join(tempRoot, MANIFEST_PATH));
+    const committedManifestPath = path.join(repoRoot, MANIFEST_PATH);
+    if (
+      !fs.existsSync(committedManifestPath) ||
+      !freshManifest.equals(fs.readFileSync(committedManifestPath))
+    ) {
+      drift.push(MANIFEST_PATH);
     }
 
     return drift;
@@ -140,6 +286,7 @@ export function checkDrift(repoRoot) {
 
 function main() {
   const checkMode = process.argv.includes("--check");
+  const force = process.argv.includes("--force-raster");
 
   if (checkMode) {
     const drift = checkDrift(REPO_ROOT);
@@ -155,7 +302,7 @@ function main() {
     return;
   }
 
-  const { dirsWritten, filesWritten } = renderAll(REPO_ROOT);
+  const { dirsWritten, filesWritten } = renderAll(REPO_ROOT, { force });
   console.log(
     `Wrote ${filesWritten} files across ${dirsWritten} theme directories.`,
   );
