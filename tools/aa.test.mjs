@@ -9,6 +9,11 @@ import {
 } from "./lib/tokens.mjs";
 
 const AA = 4.5;
+// WCAG 1.4.3 governs text; non-text UI components (scrollbar sliders, focus
+// indicators, control borders) fall under 1.4.11 at a lower 3:1 floor. Kept
+// as a separate constant and a separate pair list so the two criteria never
+// get conflated in one assertion.
+const AA_NONTEXT = 3;
 
 // GTK's shade(): multiply HSL lightness, clamp to [0,1].
 function shade(hex, factor) {
@@ -120,6 +125,28 @@ for (const { flavor, variant } of allCombinations()) {
       assert.ok(
         ratio >= AA,
         `${label}: ${fg} on ${bg} is ${ratio.toFixed(2)}:1, below ${AA}:1`,
+      );
+    }
+  });
+}
+
+// gtk3.mjs/gtk4.mjs — scrollbar slider has no widget of its own behind it,
+// so its effective backdrop is whatever the scrolled content painted, which
+// is surface.bg in this theme (see "gtk window text" above). This is the
+// only non-text UI component painted from a token today; add to this list
+// as more are.
+function nonTextPairsFor(flavor) {
+  const b = flavorBlock(flavor);
+  return [["gtk scrollbar slider", b.text.fg_subtle, b.surface.bg]];
+}
+
+for (const flavor of ["midnight", "twilight", "dawn", "noon"]) {
+  test(`WCAG 1.4.11 (non-text UI, 3:1) — ${flavor}`, () => {
+    for (const [label, fg, bg] of nonTextPairsFor(flavor)) {
+      const ratio = contrastRatio(fg, bg);
+      assert.ok(
+        ratio >= AA_NONTEXT,
+        `${label}: ${fg} on ${bg} is ${ratio.toFixed(2)}:1, below ${AA_NONTEXT}:1`,
       );
     }
   });
