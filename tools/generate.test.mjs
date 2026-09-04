@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import { renderAll, checkDrift } from "./generate.mjs";
 import { hasRsvgConvert, rasterizeSvgToPng } from "./lib/rasterize.mjs";
 import { buttonMatrix } from "./templates/xfwm4.mjs";
+import { pngDimensions } from "./lib/manifest.mjs";
 
 const GENERATE_SCRIPT = fileURLToPath(
   new URL("./generate.mjs", import.meta.url),
@@ -174,7 +175,6 @@ test("a second renderAll does not rewrite unchanged PNGs", (t) => {
     "vivid-life-midnight-purple",
     "close-active.png",
   );
-  const before = fs.statSync(pngPath).mtimeMs;
   fs.writeFileSync(pngPath, fs.readFileSync(pngPath)); // touch, same bytes
   const touched = fs.statSync(pngPath).mtimeMs;
   renderAll(outputRoot);
@@ -194,9 +194,23 @@ test("force re-rasterises even when the source hash is unchanged", (t) => {
     "vivid-life-midnight-purple",
     "close-active.png",
   );
-  fs.writeFileSync(pngPath, Buffer.from("clobbered"));
+  // A valid PNG at the wrong size: isPng passes and the source hash is
+  // unchanged, so this is the one state where force actually decides.
+  rasterizeSvgToPng(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1" viewBox="0 0 1 1"><rect width="1" height="1" fill="#000"/></svg>',
+    { width: 1, height: 1 },
+    pngPath,
+  );
+  renderAll(outputRoot);
+  assert.deepEqual(pngDimensions(fs.readFileSync(pngPath)), {
+    width: 1,
+    height: 1,
+  });
   renderAll(outputRoot, { force: true });
-  assert.equal(fs.readFileSync(pngPath).subarray(1, 4).toString(), "PNG");
+  assert.deepEqual(pngDimensions(fs.readFileSync(pngPath)), {
+    width: 24,
+    height: 32,
+  });
 });
 
 test("renderAll repairs a PNG that is missing or not a PNG", (t) => {
