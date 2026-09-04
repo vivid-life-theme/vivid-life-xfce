@@ -4,6 +4,11 @@ import {
   renderThemerc,
   renderButtonSvg,
   BUTTON_KINDS,
+  TOGGLED_KINDS,
+  BUTTON_STATES,
+  GLYPH_FOR,
+  buttonMatrix,
+  buttonStateColors,
   TITLE_SEGMENTS,
   EDGES,
   renderTitleXpm,
@@ -67,32 +72,122 @@ test("renderThemerc maps shadows.lg onto the drop-shadow keys", () => {
   assert.match(themerc, /^show_frame_shadow=true$/m);
 });
 
-test("BUTTON_KINDS lists close, hide, maximize", () => {
-  assert.deepEqual(BUTTON_KINDS, ["close", "hide", "maximize"]);
+test("BUTTON_KINDS lists all six Xfwm4 buttons", () => {
+  assert.deepEqual(BUTTON_KINDS, [
+    "menu",
+    "stick",
+    "shade",
+    "hide",
+    "maximize",
+    "close",
+  ]);
+  assert.deepEqual(TOGGLED_KINDS, ["stick", "shade", "maximize"]);
+  assert.deepEqual(BUTTON_STATES, [
+    "active",
+    "inactive",
+    "prelight",
+    "pressed",
+  ]);
 });
 
-test("renderButtonSvg produces a valid 16x16 SVG with the glyph color applied", () => {
+test("buttonMatrix yields 36 uniquely named assets", () => {
+  const matrix = buttonMatrix();
+  assert.equal(matrix.length, 36);
+  assert.equal(new Set(matrix.map((e) => e.name)).size, 36);
+  assert.ok(matrix.some((e) => e.name === "close-prelight"));
+  assert.ok(matrix.some((e) => e.name === "stick-toggled-active"));
+  assert.equal(
+    matrix.some((e) => e.name === "close-toggled-active"),
+    false,
+  );
+});
+
+test("GLYPH_FOR maps every matrix entry to a real Lucide name", () => {
+  for (const entry of buttonMatrix()) {
+    assert.equal(typeof GLYPH_FOR[entry.base], "string", entry.base);
+    assert.equal(entry.glyph, GLYPH_FOR[entry.base]);
+  }
+  assert.equal(GLYPH_FOR.close, "x");
+  assert.equal(GLYPH_FOR["shade-toggled"], "chevron-down");
+  assert.equal(GLYPH_FOR["maximize-toggled"], "copy");
+});
+
+test("buttonStateColors composites the hover overlay instead of using opacity", () => {
+  const midnight = flavorBlock("midnight");
+  const prelight = buttonStateColors(midnight, "#93c5fd", "prelight");
+  // surface.bg_sunk #0a0a0a + state.hover #ffffff14
+  assert.equal(prelight.backing, "#1d1d1d");
+  assert.equal(prelight.glyph, midnight.text.fg);
+  assert.equal(prelight.edge, "#93c5fd");
+});
+
+test("buttonStateColors leaves rest and inactive states unbacked", () => {
+  const midnight = flavorBlock("midnight");
+  const rest = buttonStateColors(midnight, "#93c5fd", "active");
+  const inactive = buttonStateColors(midnight, "#93c5fd", "inactive");
+  assert.equal(rest.backing, null);
+  assert.equal(inactive.backing, null);
+  assert.equal(rest.glyph, midnight.text.fg_muted);
+  assert.equal(inactive.glyph, midnight.text.fg_muted);
+  assert.equal(inactive.edge, midnight.border.subtle);
+});
+
+test("buttonStateColors' edge matches renderTitleXpm's edge for the same flavour and accent", () => {
+  // The title segments and the button slots paint the same 2px row of the
+  // titlebar; a mismatch here would render as a visible seam mid-titlebar.
+  for (const flavor of ["midnight", "dawn"]) {
+    const block = flavorBlock(flavor);
+    const accent = resolveAccent(flavor, "blue");
+
+    const titleActive = renderTitleXpm({
+      flavorBlock: block,
+      accentHex: accent,
+      active: true,
+      segment: 1,
+    });
+    const titleInactive = renderTitleXpm({
+      flavorBlock: block,
+      accentHex: accent,
+      active: false,
+      segment: 1,
+    });
+
+    assert.match(
+      titleActive,
+      new RegExp(`c ${buttonStateColors(block, accent, "active").edge}`),
+    );
+    assert.match(
+      titleInactive,
+      new RegExp(`c ${buttonStateColors(block, accent, "inactive").edge}`),
+    );
+  }
+});
+
+test("renderButtonSvg produces an opaque 24x32 canvas with the glyph inlined", () => {
   const svg = renderButtonSvg({
-    kind: "close",
-    active: true,
-    backgroundHex: "#404040",
-    glyphHex: "#f5f5f5",
+    flavorBlock: flavorBlock("noon"),
+    accentHex: "#1d4ed8",
+    glyphMarkup: '<path d="M18 6 6 18"/>',
+    state: "pressed",
   });
-  assert.match(svg, /<svg[^>]*width="16"[^>]*height="16"/);
-  assert.match(svg, /fill="#404040"/);
-  assert.match(svg, /stroke="#f5f5f5"/);
+  assert.match(svg, /<svg[^>]*width="24"[^>]*height="32"/);
+  assert.match(svg, /<rect width="24" height="32" fill="#d4d4d4"/); // noon surface.bg_sunk
+  assert.match(svg, /translate\(4,8\) scale\(0\.66667\)/);
+  assert.match(svg, /stroke-width="2\.25"/);
+  assert.match(svg, /M18 6 6 18/);
+  assert.doesNotMatch(svg, /opacity/);
 });
 
-test("renderButtonSvg throws on an unknown kind", () => {
+test("renderButtonSvg throws on an unknown state", () => {
   assert.throws(
     () =>
       renderButtonSvg({
-        kind: "nope",
-        active: true,
-        backgroundHex: "#000",
-        glyphHex: "#fff",
+        flavorBlock: flavorBlock("noon"),
+        accentHex: "#1d4ed8",
+        glyphMarkup: "<path/>",
+        state: "hovering",
       }),
-    /Unknown button kind/,
+    /Unknown button state/,
   );
 });
 

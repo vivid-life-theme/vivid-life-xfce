@@ -1,4 +1,5 @@
 import { renderXpm } from "../lib/xpm.mjs";
+import { composite } from "../lib/contrast.mjs";
 
 export function renderThemerc(flavorBlock, accentHex, accentOnHex) {
   const { text } = flavorBlock;
@@ -30,24 +31,111 @@ shadow_opacity=18
 `;
 }
 
-export const BUTTON_KINDS = ["close", "hide", "maximize"];
+export const BUTTON_KINDS = [
+  "menu",
+  "stick",
+  "shade",
+  "hide",
+  "maximize",
+  "close",
+];
+export const TOGGLED_KINDS = ["stick", "shade", "maximize"];
+export const BUTTON_STATES = ["active", "inactive", "prelight", "pressed"];
 
-const GLYPHS = {
-  close: "M4,4 L12,12 M12,4 L4,12",
-  hide: "M4,11 L12,11",
-  maximize: "M4,4 L12,4 L12,12 L4,12 Z",
+export const GLYPH_FOR = {
+  menu: "menu",
+  stick: "pin",
+  "stick-toggled": "pin-off",
+  shade: "chevron-up",
+  "shade-toggled": "chevron-down",
+  hide: "minus",
+  maximize: "square",
+  "maximize-toggled": "copy",
+  close: "x",
 };
 
-export function renderButtonSvg({ kind, active, backgroundHex, glyphHex }) {
-  const glyphPath = GLYPHS[kind];
-  if (!glyphPath) {
-    throw new Error(`Unknown button kind: ${kind}`);
+export function buttonMatrix() {
+  const bases = [
+    ...BUTTON_KINDS,
+    ...TOGGLED_KINDS.map((kind) => `${kind}-toggled`),
+  ];
+  const entries = [];
+  for (const base of bases) {
+    for (const state of BUTTON_STATES) {
+      entries.push({
+        name: `${base}-${state}`,
+        base,
+        glyph: GLYPH_FOR[base],
+        state,
+      });
+    }
   }
-  const opacity = active ? "1" : "0.5";
+  return entries;
+}
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-  <circle cx="8" cy="8" r="7" fill="${backgroundHex}" opacity="${opacity}" />
-  <path d="${glyphPath}" stroke="${glyphHex}" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="${opacity}" />
+// The title segments and the button slots paint the same 2px row of the
+// titlebar, so the edge colour is derived from the same focusEdgeColor
+// helper renderTitleXpm and renderTopCornerSvg use — never a second
+// ternary that could drift from theirs.
+export function buttonStateColors(flavorBlock, accentHex, state) {
+  const { surface, text } = flavorBlock;
+  const sunk = surface.bg_sunk;
+
+  switch (state) {
+    case "active":
+      return {
+        backing: null,
+        glyph: text.fg_muted,
+        edge: focusEdgeColor(flavorBlock, accentHex, true),
+      };
+    case "inactive":
+      return {
+        backing: null,
+        glyph: text.fg_muted,
+        edge: focusEdgeColor(flavorBlock, accentHex, false),
+      };
+    case "prelight":
+      return {
+        backing: composite(sunk, flavorBlock.state.hover),
+        glyph: text.fg,
+        edge: focusEdgeColor(flavorBlock, accentHex, true),
+      };
+    case "pressed":
+      return {
+        backing: composite(sunk, flavorBlock.state.active),
+        glyph: text.fg,
+        edge: focusEdgeColor(flavorBlock, accentHex, true),
+      };
+    default:
+      throw new Error(`Unknown button state: ${state}`);
+  }
+}
+
+const BUTTON_WIDTH = 24;
+const BUTTON_HEIGHT = 32;
+const BUTTON_CELL = 24;
+const BUTTON_CELL_Y = (BUTTON_HEIGHT - BUTTON_CELL) / 2;
+const GLYPH_BOX = 16;
+const GLYPH_OFFSET = BUTTON_CELL_Y + (BUTTON_CELL - GLYPH_BOX) / 2;
+
+export function renderButtonSvg({
+  flavorBlock,
+  accentHex,
+  glyphMarkup,
+  state,
+}) {
+  const colors = buttonStateColors(flavorBlock, accentHex, state);
+  const backing =
+    colors.backing === null
+      ? ""
+      : `  <rect y="${BUTTON_CELL_Y}" width="${BUTTON_CELL}" height="${BUTTON_CELL}" rx="8" fill="${colors.backing}"/>\n`;
+
+  // Lucide is authored at stroke-width 2 on a 24 grid. Scaling to the
+  // 16px glyph box (16/24) with stroke-width 2.25 rasterises at 1.5px.
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${BUTTON_WIDTH}" height="${BUTTON_HEIGHT}" viewBox="0 0 ${BUTTON_WIDTH} ${BUTTON_HEIGHT}">
+  <rect width="${BUTTON_WIDTH}" height="${BUTTON_HEIGHT}" fill="${flavorBlock.surface.bg_sunk}"/>
+  <rect y="${BUTTON_HEIGHT - 2}" width="${BUTTON_WIDTH}" height="2" fill="${colors.edge}"/>
+${backing}  <g transform="translate(4,${GLYPH_OFFSET}) scale(0.66667)" fill="none" stroke="${colors.glyph}" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">${glyphMarkup}</g>
 </svg>
 `;
 }
