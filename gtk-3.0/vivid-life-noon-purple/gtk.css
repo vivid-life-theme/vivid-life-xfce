@@ -103,10 +103,17 @@ notebook > header tab:checked {
 }
 
 menu,
-.menu,
-menuitem {
+.menu {
   background-color: @vl_bg_overlay;
   color: @vl_fg;
+  border: 1px solid @vl_border;
+  border-radius: 6px;
+  padding: 4px;
+}
+
+menuitem {
+  padding: 6px 10px;
+  border-radius: 4px;
 }
 
 menuitem:hover {
@@ -152,14 +159,33 @@ tooltip {
   border: 1px solid @vl_border;
 }
 
-/* Opaque on purpose: *:selected is a universal selector, so a translucent
-   background composites over whatever ancestor painted (bg, bg_sunk,
-   bg_soft or bg_overlay) and its contrast cannot be verified. The design
-   system's state.selection token gives selection one determinate colour. */
-selection,
-*:selected {
+/* Text selection (entry/textview) only — the design system's state.selection
+   token is a deliberately muted blend, distinct from the row/menu-item
+   "selected" affordance below. */
+selection {
   background-color: @vl_selection;
   color: @vl_fg;
+}
+
+/* *:selected covers listbox/treeview rows and menu items (Whisker Menu
+   categories, the Appearance theme list, etc.) and needs to read as clearly
+   selected. Opaque on purpose: *:selected is a universal selector with no
+   single backdrop, so this reuses the same solid accent + accent_on pairing
+   as button:active/check:checked rather than a translucent overlay whose
+   contrast against an arbitrary ancestor can't be verified. */
+*:selected {
+  background-color: @vl_accent;
+  color: @vl_accent_on;
+}
+
+/* Subtitle/secondary labels (e.g. the "Gtk3, Gtk2, Xfwm4" line under a theme
+   name) are commonly drawn with .dim-label's baked-in opacity: 0.55, or an
+   app-set foreground colour, neither of which follows *:selected's color
+   automatically. Force both back to full contrast on a selected row. */
+*:selected label,
+*:selected .dim-label {
+  color: @vl_accent_on;
+  opacity: 1;
 }
 
 .warning {

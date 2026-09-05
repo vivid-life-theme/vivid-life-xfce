@@ -95,10 +95,12 @@ function pairsFor(flavor, variant) {
     ["gtk accent button text", on, accent],
     // gtk3 only — destructive-action exists only in gtk3.mjs.
     ["gtk destructive button text", on, b.semantic.danger],
-    // *:selected is a universal selector with no single backdrop, so
-    // gtk3.mjs paints it with the opaque state.selection token rather than
-    // a translucent accent. One determinate pair, not four speculative ones.
-    ["gtk3 selection", b.text.fg, b.state.selection],
+    // gtk3.mjs's `selection` node (text selection) uses the muted
+    // state.selection token; `*:selected` (rows/menu items) uses the solid
+    // accent + accent_on pairing instead — see the pair below and "gtk
+    // accent button text" above, which already covers [on, accent].
+    ["gtk3 text selection", b.text.fg, b.state.selection],
+    ["gtk3 row/menu selection", on, accent],
     // gtk3.mjs composites this one over whatever is behind it. GTK's
     // alpha(colour, f) becomes an #rrggbbaa overlay: 0.2 -> 33. menuitem
     // paints bg_overlay itself, so this backdrop is determinate.
