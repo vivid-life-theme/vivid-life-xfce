@@ -73,11 +73,22 @@ if [ -n "$VARIANT" ] && ! is_in_list "$VARIANT" "$ALL_VARIANTS"; then
 	die "unknown variant: $VARIANT (expected one of: $ALL_VARIANTS)"
 fi
 
+has_gtk_lib() {
+	# Detect installed GTK runtime libraries via the linker cache. This works
+	# on ordinary desktop installs, which have libgtk-*.so but rarely the
+	# -dev packages that ship the pkg-config .pc files used previously.
+	if command -v ldconfig >/dev/null 2>&1; then
+		ldconfig -p 2>/dev/null | grep -q "$1"
+	else
+		pkg-config --exists "$2" 2>/dev/null
+	fi
+}
+
 detect_target() {
 	case "$1" in
-	gtk-2.0) pkg-config --exists gtk+-2.0 2>/dev/null ;;
-	gtk-3.0) pkg-config --exists gtk+-3.0 2>/dev/null ;;
-	gtk-4.0) pkg-config --exists gtk4 2>/dev/null ;;
+	gtk-2.0) has_gtk_lib 'libgtk-x11-2\.0\.so' gtk+-2.0 ;;
+	gtk-3.0) has_gtk_lib 'libgtk-3\.so' gtk+-3.0 ;;
+	gtk-4.0) has_gtk_lib 'libgtk-4\.so' gtk4 ;;
 	xfwm4) command -v xfwm4 >/dev/null 2>&1 ;;
 	*) return 1 ;;
 	esac
@@ -194,8 +205,10 @@ print_recommendations() {
 Icon and font recommendations (not bundled -- install separately if you'd like):
 
   Icons: Papirus icon theme, with per-variant folder colors via papirus-folders.
-    apt:    sudo apt install papirus-icon-theme papirus-folders
-    dnf:    sudo dnf install papirus-icon-theme
+    apt:    sudo apt install papirus-icon-theme
+            (papirus-folders isn't packaged for Debian/Ubuntu; install it
+            from https://github.com/PapirusDevelopmentTeam/papirus-folders)
+    dnf:    sudo dnf install papirus-icon-theme papirus-folders
     pacman: sudo pacman -S papirus-icon-theme papirus-folders
     Match your variant's folder color:
       red -> red   orange -> orange   yellow -> yellow
