@@ -221,6 +221,15 @@ def lists_section():
         if index == 0:
             listbox.select_row(listbox.get_row_at_index(0))
     box.pack_start(listbox, False, False, 0)
+
+    icon_store = Gtk.ListStore(str)
+    for name in ("Documents", "Pictures", "Music", "Downloads"):
+        icon_store.append([name])
+    icons = Gtk.IconView(model=icon_store)
+    icons.set_text_column(0)
+    icons.set_item_width(90)
+    icons.set_size_request(-1, 90)
+    box.pack_start(icons, False, False, 0)
     return frame
 
 

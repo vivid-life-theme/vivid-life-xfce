@@ -8,6 +8,7 @@ import * as scale from "./gtk3/scale.mjs";
 import * as checkRadio from "./gtk3/check-radio.mjs";
 import * as switchWidget from "./gtk3/switch.mjs";
 import * as notebook from "./gtk3/notebook.mjs";
+import * as view from "./gtk3/view.mjs";
 import * as menu from "./gtk3/menu.mjs";
 import * as headerBars from "./gtk3/header-bars.mjs";
 import * as scrollbar from "./gtk3/scrollbar.mjs";
@@ -32,6 +33,7 @@ export const GTK3_MODULES = [
   checkRadio,
   switchWidget,
   notebook,
+  view,
   menu,
   headerBars,
   scrollbar,
