@@ -44,6 +44,9 @@ test("renderGtk3Css styles core widgets", () => {
     "progressbar",
     "tooltip",
     "menuitem",
+    "frame",
+    "separator",
+    ".view",
   ]) {
     assert.ok(css.includes(selector), `expected CSS to style ${selector}`);
   }

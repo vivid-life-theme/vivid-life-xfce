@@ -57,6 +57,8 @@ def surfaces_section():
         pane.get_style_context().add_class(name)
         pane.pack_start(label(f"  .{name}"), False, False, 0)
         box.pack_start(pane, False, False, 0)
+    box.pack_start(Gtk.Separator(), False, False, 6)
+    box.pack_start(label("A horizontal separator sits above this line"), False, False, 0)
     return frame
 
 

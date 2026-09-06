@@ -30,6 +30,36 @@ window,
   color: @vl_fg;
 }
 
+/* The content surface: text views, tree views and anything else that holds
+   a document rather than chrome. Matches entry, which sits on the same
+   sunk surface, so a text field and the view it filters read as one layer. */
+.view,
+textview,
+textview text {
+  background-color: @vl_bg_sunk;
+  color: @vl_fg;
+}
+
+/* GTK draws a frame's border on a dedicated `border` child node, so the
+   element selector alone paints nothing — this is why frames rendered with
+   no visible edge at all. .frame is the class form apps apply directly. */
+frame > border,
+.frame {
+  border: 1px solid @vl_control_border;
+  border-radius: 4px;
+}
+
+/* Decorative rules between sections. Deliberately border.default, not the
+   control boundary: a separator is not a user-interface component whose
+   state has to be identifiable, so WCAG 1.4.11 does not govern it, and the
+   control boundary reads as a hard divider where a hairline is wanted.
+   The exemption is recorded in contrastPairs rather than left implicit. */
+separator {
+  background-color: @vl_border;
+  min-width: 1px;
+  min-height: 1px;
+}
+
 button {
   background-color: @vl_bg_soft;
   color: @vl_fg;
