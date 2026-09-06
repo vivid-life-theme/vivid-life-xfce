@@ -267,6 +267,18 @@ def layout_section():
     paned.pack1(switcher, False, False)
     paned.pack2(stack, True, False)
     box.pack_start(paned, False, False, 0)
+
+    expander = Gtk.Expander(label="An expander, expanded")
+    expander.set_expanded(True)
+    inner = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+    inner.set_border_width(6)
+    inner.pack_start(label("Revealed content"), False, False, 0)
+    expander.add(inner)
+    box.pack_start(expander, False, False, 0)
+
+    calendar = Gtk.Calendar()
+    calendar.set_halign(Gtk.Align.START)
+    box.pack_start(calendar, False, False, 0)
     return frame
 
 

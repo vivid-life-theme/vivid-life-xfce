@@ -16,6 +16,7 @@ import * as headerBars from "./gtk3/header-bars.mjs";
 import * as scrollbar from "./gtk3/scrollbar.mjs";
 import * as progress from "./gtk3/progress.mjs";
 import * as tooltip from "./gtk3/tooltip.mjs";
+import * as misc from "./gtk3/misc.mjs";
 import * as selection from "./gtk3/selection.mjs";
 import * as infobar from "./gtk3/infobar.mjs";
 
@@ -43,6 +44,7 @@ export const GTK3_MODULES = [
   scrollbar,
   progress,
   tooltip,
+  misc,
   selection,
   infobar,
 ];

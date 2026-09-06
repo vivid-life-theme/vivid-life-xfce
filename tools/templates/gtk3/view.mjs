@@ -39,8 +39,15 @@ iconview:selected:focus {
   color: @vl_accent_on;
 }
 
+/* Needs an explicit icon source for the same reason expander arrow does:
+   the theme replaces Adwaita, which was supplying the glyph. */
 treeview.view expander {
   color: @vl_fg_muted;
+  -gtk-icon-source: -gtk-icontheme("pan-end-symbolic");
+}
+
+treeview.view expander:checked {
+  -gtk-icon-source: -gtk-icontheme("pan-down-symbolic");
 }
 
 /* Rows stay transparent so the view's surface shows through and the

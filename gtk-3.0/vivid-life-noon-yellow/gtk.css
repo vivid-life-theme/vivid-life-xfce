@@ -132,6 +132,7 @@ combobox arrow {
   color: @vl_fg_muted;
   min-width: 16px;
   min-height: 16px;
+  -gtk-icon-source: -gtk-icontheme("pan-down-symbolic");
 }
 
 combobox button {
@@ -305,8 +306,15 @@ iconview:selected:focus {
   color: @vl_accent_on;
 }
 
+/* Needs an explicit icon source for the same reason expander arrow does:
+   the theme replaces Adwaita, which was supplying the glyph. */
 treeview.view expander {
   color: @vl_fg_muted;
+  -gtk-icon-source: -gtk-icontheme("pan-end-symbolic");
+}
+
+treeview.view expander:checked {
+  -gtk-icon-source: -gtk-icontheme("pan-down-symbolic");
 }
 
 /* Rows stay transparent so the view's surface shows through and the
@@ -550,6 +558,54 @@ tooltip {
   background-color: @vl_bg_overlay;
   color: @vl_fg;
   border: 1px solid @vl_control_border;
+}
+
+calendar {
+  background-color: @vl_bg_sunk;
+  color: @vl_fg;
+  border: 1px solid @vl_control_border;
+  border-radius: 4px;
+  padding: 4px;
+}
+
+/* Days outside the displayed month, and the weekday header row. Muted on
+   the sunk surface clears 5.52:1, so these stay legible while reading as
+   secondary. */
+calendar:indeterminate,
+calendar.header,
+calendar.highlight {
+  color: @vl_fg_muted;
+}
+
+calendar:selected {
+  background-color: @vl_accent;
+  color: @vl_accent_on;
+  border-radius: 4px;
+}
+
+expander title {
+  color: @vl_fg;
+  padding: 4px 0;
+}
+
+/* -gtk-icon-source is load-bearing. A GTK theme replaces Adwaita entirely
+   rather than extending it, and Adwaita is what supplies the arrow glyph
+   for this node — measured, a colour-only rule leaves the expander with an
+   indent and no arrow at all. GTK ships the pan-* symbolic icons in its own
+   gresource, so naming them adds no icon dependency. */
+expander arrow {
+  color: @vl_fg_muted;
+  min-width: 16px;
+  min-height: 16px;
+  -gtk-icon-source: -gtk-icontheme("pan-end-symbolic");
+}
+
+expander arrow:checked {
+  -gtk-icon-source: -gtk-icontheme("pan-down-symbolic");
+}
+
+expander title:hover arrow {
+  color: @vl_accent;
 }
 
 /* Text selection (entry/textview) only — the design system's state.selection

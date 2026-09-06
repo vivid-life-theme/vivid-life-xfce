@@ -63,6 +63,8 @@ test("renderGtk3Css styles core widgets", () => {
     "paned",
     ".sidebar",
     ".linked",
+    "calendar",
+    "expander",
   ]) {
     assert.ok(css.includes(selector), `expected CSS to style ${selector}`);
   }

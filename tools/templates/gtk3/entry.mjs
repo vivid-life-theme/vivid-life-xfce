@@ -15,6 +15,7 @@ combobox arrow {
   color: @vl_fg_muted;
   min-width: ${ctx.space["4"]};
   min-height: ${ctx.space["4"]};
+  -gtk-icon-source: -gtk-icontheme("pan-down-symbolic");
 }
 
 combobox button {
