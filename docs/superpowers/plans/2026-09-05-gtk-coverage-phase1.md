@@ -1,6 +1,6 @@
 # GTK Widget Coverage — Phase 1 Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking; `- [~]` marks a step whose verification was substituted, with the substitution quoted beneath it.
 
 **Goal:** Put a verification harness, a per-widget module structure, and a generalized contrast gate behind the GTK3 stylesheet, then apply the three fixes that need no further diagnosis.
 
@@ -633,10 +633,13 @@ Build sections mirroring `preview/01-kitchen-sink.html` — surfaces, text layer
 
 `--screenshot PATH` renders, waits for one frame via `GLib.idle_add`, writes the PNG with `Gdk.pixbuf_get_from_window`, and quits.
 
-- [x] **Step 2: Verify it runs interactively**
+- [~] **Step 2: Verify it runs interactively**
 
 Run: `/usr/bin/python3 tools/preview/gallery.py --theme vivid-life-midnight-blue`
 Expected: a window opens showing every section
+
+> Substituted: verified headlessly under `xvfb-run --screenshot` instead of
+> interactively, and the capture was reviewed section by section.
 
 - [x] **Step 3: Probe that `GTK_THEME` applies headlessly**
 
@@ -888,15 +891,20 @@ The rule shipped in `ee09a97` sets `color` on _every_ label under a selected row
 
 Update the comment to record the narrowed intent: subtitle text carries `.dim-label`'s baked-in `opacity: 0.55`, which does not follow the row's selected state; semantic label colors are deliberately left alone so they stay meaningful when selected.
 
-- [x] **Step 2: Regenerate and verify**
+- [~] **Step 2: Regenerate and verify**
 
 Run: `npm run generate && npm run check`
 Then open the Appearance dialog and confirm the `Gtk3, Gtk2, Xfwm4` subtitle under a selected theme name is still fully legible against the accent fill.
+
+> Substituted: confirmed against the gallery's treeview and listbox selected
+> rows, which reproduce the same `.dim-label` subtitle, not the real dialog.
 
 - [x] **Step 3: Run the full suite**
 
 Run: `npm test`
 Expected: all tests pass
+
+> Result: 116 tests, 116 pass, 0 fail (396s).
 
 - [x] **Step 4: Commit**
 
