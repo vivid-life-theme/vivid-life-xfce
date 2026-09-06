@@ -93,6 +93,29 @@ button.destructive-action {
   color: @vl_accent_on;
 }
 
+/* A linked group is one control drawn as several: square the interior
+   corners and collapse the shared edges so three buttons read as a
+   segmented control rather than three adjacent controls. Uses the sibling
+   combinator rather than chained :not(), which GTK's CSS parser handles
+   less predictably. */
+.linked > button {
+  border-radius: 0;
+}
+
+.linked > button:first-child {
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+
+.linked > button:last-child {
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.linked > button + button {
+  border-left-width: 0;
+}
+
 entry {
   background-color: @vl_bg_sunk;
   color: @vl_fg;
@@ -300,6 +323,73 @@ list row {
 list row:hover {
   background-color: alpha(@vl_accent, 0.2);
   color: @vl_fg;
+}
+
+/* The control boundary, not border.default: a paned handle is draggable
+   and its position is meaningful, which makes it a user-interface component
+   under WCAG 1.4.11 rather than the decorative rule base.mjs styles.
+
+   background-image: none is load-bearing. GTK ships a default handle image
+   for this node, and it composites over background-color — measured, a
+   colour-only rule renders #cdc7c2 where #d4d4d4 was asked for. */
+paned > separator {
+  background-color: @vl_control_border;
+  background-image: none;
+  min-width: 1px;
+  min-height: 1px;
+}
+
+paned > separator:hover {
+  background-color: @vl_accent;
+  background-image: none;
+}
+
+.sidebar,
+placessidebar,
+stacksidebar {
+  color: @vl_fg;
+}
+
+.sidebar scrolledwindow,
+placessidebar scrolledwindow,
+stacksidebar scrolledwindow {
+  background-color: transparent;
+}
+
+.sidebar viewport,
+placessidebar viewport,
+stacksidebar viewport,
+.sidebar list,
+placessidebar list,
+stacksidebar list {
+  background-color: @vl_bg_soft;
+}
+
+.sidebar list,
+placessidebar list,
+stacksidebar list {
+  border-right: 1px solid @vl_control_border;
+}
+
+/* Rows stay transparent so the sidebar's surface shows through and
+   *:selected is the only thing that fills one. An accent stripe on the row
+   instead would be 2.76:1 against bg_soft on Midnight Red. */
+.sidebar row,
+placessidebar row,
+stacksidebar row {
+  background-color: transparent;
+  padding: 4px 12px;
+  border-radius: 4px;
+}
+
+/* The rule above is (0,1,1) and *:selected is (0,1,0), so clearing the row
+   background silently outranks the global selection fill. Restate it here
+   rather than weakening the rule — the same trap as treeview.view. */
+.sidebar row:selected,
+placessidebar row:selected,
+stacksidebar row:selected {
+  background-color: @vl_accent;
+  color: @vl_accent_on;
 }
 
 menu,

@@ -32,6 +32,29 @@ button.suggested-action {
 button.destructive-action {
   background-color: @vl_danger;
   color: @vl_accent_on;
+}
+
+/* A linked group is one control drawn as several: square the interior
+   corners and collapse the shared edges so three buttons read as a
+   segmented control rather than three adjacent controls. Uses the sibling
+   combinator rather than chained :not(), which GTK's CSS parser handles
+   less predictably. */
+.linked > button {
+  border-radius: 0;
+}
+
+.linked > button:first-child {
+  border-top-left-radius: ${ctx.radius.sm};
+  border-bottom-left-radius: ${ctx.radius.sm};
+}
+
+.linked > button:last-child {
+  border-top-right-radius: ${ctx.radius.sm};
+  border-bottom-right-radius: ${ctx.radius.sm};
+}
+
+.linked > button + button {
+  border-left-width: 0;
 }`;
 }
 

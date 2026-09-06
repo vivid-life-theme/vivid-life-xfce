@@ -246,6 +246,30 @@ def lists_section():
     return frame
 
 
+def layout_section():
+    frame, box = section("Layout")
+
+    paned = Gtk.Paned(orientation=Gtk.Orientation.HORIZONTAL)
+    paned.set_size_request(-1, 110)
+    paned.set_position(150)
+
+    stack = Gtk.Stack()
+    for name, title in (("one", "First page"), ("two", "Second page")):
+        page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        page.set_border_width(8)
+        page.pack_start(label(f"Contents of the {title.lower()}"), False, False, 0)
+        stack.add_titled(page, name, title)
+
+    switcher = Gtk.StackSidebar()
+    switcher.set_stack(stack)
+    switcher.set_size_request(150, -1)
+
+    paned.pack1(switcher, False, False)
+    paned.pack2(stack, True, False)
+    box.pack_start(paned, False, False, 0)
+    return frame
+
+
 def menus_section():
     frame, box = section("Menus")
 
@@ -393,6 +417,7 @@ SECTIONS = (
     inputs_section,
     tabs_section,
     lists_section,
+    layout_section,
     menus_section,
     feedback_section,
     xfce_section,
