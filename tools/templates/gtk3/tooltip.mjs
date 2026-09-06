@@ -5,3 +5,14 @@ export function render(ctx) {
   border: 1px solid @vl_border;
 }`;
 }
+
+export function contrastPairs(ctx) {
+  return [
+    {
+      label: "tooltip text",
+      fg: ctx.text.fg,
+      bg: ctx.surface.bg_overlay,
+      rule: "text",
+    },
+  ];
+}

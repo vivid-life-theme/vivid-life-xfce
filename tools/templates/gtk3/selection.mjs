@@ -28,3 +28,20 @@ selection {
   opacity: 1;
 }`;
 }
+
+export function contrastPairs(ctx) {
+  return [
+    {
+      label: "text selection",
+      fg: ctx.text.fg,
+      bg: ctx.state.selection,
+      rule: "text",
+    },
+    {
+      label: "row/menu selection label",
+      fg: ctx.accentOn,
+      bg: ctx.accent,
+      rule: "text",
+    },
+  ];
+}

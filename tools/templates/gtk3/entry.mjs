@@ -11,3 +11,14 @@ entry:focus {
   border-color: @vl_accent;
 }`;
 }
+
+export function contrastPairs(ctx) {
+  return [
+    {
+      label: "entry text",
+      fg: ctx.text.fg,
+      bg: ctx.surface.bg_sunk,
+      rule: "text",
+    },
+  ];
+}

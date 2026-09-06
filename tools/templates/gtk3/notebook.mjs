@@ -14,3 +14,14 @@ notebook > header tab:checked {
   border-bottom: 2px solid @vl_accent;
 }`;
 }
+
+export function contrastPairs(ctx) {
+  return [
+    {
+      label: "notebook tab label",
+      fg: ctx.text.fg_muted,
+      bg: ctx.surface.bg_soft,
+      rule: "text",
+    },
+  ];
+}

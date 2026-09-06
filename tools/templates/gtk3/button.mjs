@@ -1,3 +1,5 @@
+import { shade } from "../../lib/contrast.mjs";
+
 export function render(ctx) {
   return `button {
   background-color: @vl_bg_soft;
@@ -31,4 +33,40 @@ button.destructive-action {
   background-color: @vl_danger;
   color: @vl_accent_on;
 }`;
+}
+
+export function contrastPairs(ctx) {
+  return [
+    {
+      label: "button label",
+      fg: ctx.text.fg,
+      bg: ctx.surface.bg_soft,
+      rule: "text",
+    },
+    {
+      label: "button hover label",
+      fg: ctx.text.fg,
+      bg: shade(ctx.surface.bg_soft, 1.08),
+      rule: "text",
+    },
+    {
+      label: "accent button label",
+      fg: ctx.accentOn,
+      bg: ctx.accent,
+      rule: "text",
+    },
+    {
+      label: "destructive button label",
+      fg: ctx.accentOn,
+      bg: ctx.semantic.danger,
+      rule: "text",
+    },
+    {
+      label: "disabled button label",
+      fg: ctx.text.fg_disabled,
+      bg: ctx.surface.bg_soft,
+      rule: "text",
+      exempt: "WCAG 1.4.3 — text in an inactive user-interface component",
+    },
+  ];
 }

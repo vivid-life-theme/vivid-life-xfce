@@ -16,3 +16,16 @@ scrollbar slider:hover {
   background-color: @vl_accent;
 }`;
 }
+
+export function contrastPairs(ctx) {
+  return [
+    // The slider has no widget of its own behind it, so its effective
+    // backdrop is whatever the scrolled content painted — surface.bg here.
+    {
+      label: "scrollbar slider",
+      fg: ctx.text.fg_subtle,
+      bg: ctx.surface.bg,
+      rule: "nontext",
+    },
+  ];
+}

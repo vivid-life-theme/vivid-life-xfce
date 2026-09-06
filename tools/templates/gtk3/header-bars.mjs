@@ -5,3 +5,14 @@ export function render(ctx) {
   border-bottom: 1px solid @vl_border;
 }`;
 }
+
+export function contrastPairs(ctx) {
+  return [
+    {
+      label: "headerbar title",
+      fg: ctx.text.fg,
+      bg: ctx.surface.bg_soft,
+      rule: "text",
+    },
+  ];
+}

@@ -12,3 +12,14 @@ radio:checked {
   color: @vl_accent_on;
 }`;
 }
+
+export function contrastPairs(ctx) {
+  return [
+    {
+      label: "check/radio mark when checked",
+      fg: ctx.accentOn,
+      bg: ctx.accent,
+      rule: "nontext",
+    },
+  ];
+}

@@ -9,3 +9,14 @@ progressbar > trough > progress {
   border-radius: 4px;
 }`;
 }
+
+export function contrastPairs(ctx) {
+  return [
+    {
+      label: "progress fill against its trough",
+      fg: ctx.accent,
+      bg: ctx.surface.bg_sunk,
+      rule: "nontext",
+    },
+  ];
+}
