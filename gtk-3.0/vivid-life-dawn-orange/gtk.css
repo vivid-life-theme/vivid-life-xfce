@@ -88,6 +88,35 @@ radio:checked {
   color: @vl_accent_on;
 }
 
+switch {
+  background-color: @vl_bg_sunk;
+  border: 1px solid @vl_control_border;
+  border-radius: 14px;
+  min-width: 40px;
+  min-height: 20px;
+}
+
+switch:checked {
+  background-color: @vl_accent;
+  border-color: @vl_accent;
+}
+
+switch slider {
+  background-color: @vl_fg_muted;
+  border-radius: 50%;
+  min-width: 16px;
+  min-height: 16px;
+  margin: 1px;
+}
+
+switch:checked slider {
+  background-color: @vl_accent_on;
+}
+
+switch:disabled {
+  color: @vl_fg_disabled;
+}
+
 notebook > header {
   background-color: @vl_bg_soft;
   border-color: @vl_border;

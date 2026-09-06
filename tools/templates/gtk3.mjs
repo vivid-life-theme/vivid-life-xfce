@@ -4,6 +4,7 @@ import * as base from "./gtk3/base.mjs";
 import * as button from "./gtk3/button.mjs";
 import * as entry from "./gtk3/entry.mjs";
 import * as checkRadio from "./gtk3/check-radio.mjs";
+import * as switchWidget from "./gtk3/switch.mjs";
 import * as notebook from "./gtk3/notebook.mjs";
 import * as menu from "./gtk3/menu.mjs";
 import * as headerBars from "./gtk3/header-bars.mjs";
@@ -25,6 +26,7 @@ export const GTK3_MODULES = [
   button,
   entry,
   checkRadio,
+  switchWidget,
   notebook,
   menu,
   headerBars,
