@@ -47,6 +47,9 @@ test("renderGtk3Css styles core widgets", () => {
     "frame",
     "separator",
     ".view",
+    "infobar",
+    "levelbar",
+    "spinner",
   ]) {
     assert.ok(css.includes(selector), `expected CSS to style ${selector}`);
   }

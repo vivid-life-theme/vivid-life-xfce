@@ -213,6 +213,42 @@ progressbar > trough > progress {
   border-radius: 4px;
 }
 
+/* A levelbar drew nothing at all: GTK gives trough and block no default
+   paint, so with no rule the widget is an empty box the height of a line. */
+levelbar trough {
+  background-color: @vl_bg_sunk;
+  border: 1px solid @vl_control_border;
+  border-radius: 4px;
+  min-height: 8px;
+}
+
+levelbar block.filled {
+  background-color: @vl_accent;
+  border-radius: 4px;
+}
+
+/* GTK's built-in offsets: below "low" and at/above "high". Semantic rather
+   than accent, because a level crossing a threshold is the one piece of
+   information a level bar carries. */
+levelbar block.low {
+  background-color: @vl_warning;
+}
+
+levelbar block.high,
+levelbar block.full {
+  background-color: @vl_success;
+}
+
+levelbar block.empty {
+  background-color: transparent;
+}
+
+spinner {
+  color: @vl_accent;
+  min-width: 16px;
+  min-height: 16px;
+}
+
 tooltip {
   background-color: @vl_bg_overlay;
   color: @vl_fg;
@@ -249,6 +285,41 @@ selection {
 *:selected .subtitle {
   color: @vl_accent_on;
   opacity: 1;
+}
+
+infobar {
+  background-color: @vl_bg_soft;
+  color: @vl_fg;
+  border: 1px solid @vl_control_border;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+infobar.info {
+  background-color: @vl_info;
+}
+
+infobar.warning {
+  background-color: @vl_warning;
+}
+
+infobar.error {
+  background-color: @vl_danger;
+}
+
+infobar.question {
+  background-color: @vl_accent;
+}
+
+infobar.info,
+infobar.info label,
+infobar.warning,
+infobar.warning label,
+infobar.error,
+infobar.error label,
+infobar.question,
+infobar.question label {
+  color: @vl_accent_on;
 }
 
 .warning {

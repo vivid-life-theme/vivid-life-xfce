@@ -253,14 +253,26 @@ def feedback_section():
     progress.set_text("62%")
     box.pack_start(progress, False, False, 0)
 
-    level = Gtk.LevelBar.new_for_interval(0, 100)
-    level.set_value(72)
-    box.pack_start(level, False, False, 0)
+    for value in (15, 50, 90):
+        level = Gtk.LevelBar.new_for_interval(0, 100)
+        level.set_value(value)
+        # row() packs without expand, so a level bar with no size request
+        # collapses to its minimum width and renders as a tick.
+        level.set_size_request(220, -1)
+        # GTK's built-in low/high offsets are absolute (0.25/0.75), so on a
+        # 0-100 interval every value lands above them and only block.filled
+        # is ever applied. Declaring offsets on this scale is what makes the
+        # semantic block rules reachable.
+        level.add_offset_value("low", 25)
+        level.add_offset_value("high", 75)
+        level.add_offset_value(Gtk.LEVEL_BAR_OFFSET_FULL, 100)
+        box.pack_start(row(label(f"Level ({value}):"), level), False, False, 0)
 
     for message_type, text in (
         (Gtk.MessageType.INFO, "Informational message"),
         (Gtk.MessageType.WARNING, "Warning message"),
         (Gtk.MessageType.ERROR, "Error message"),
+        (Gtk.MessageType.QUESTION, "Question message"),
     ):
         bar = Gtk.InfoBar()
         bar.set_message_type(message_type)
