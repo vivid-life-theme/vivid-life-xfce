@@ -320,10 +320,77 @@ menuitem:hover {
   background-color: alpha(@vl_accent, 0.2);
 }
 
+menubar {
+  background-color: @vl_bg_soft;
+  color: @vl_fg;
+  border-bottom: 1px solid @vl_control_border;
+}
+
+menubar > menuitem {
+  padding: 4px 12px;
+  border-radius: 0;
+}
+
+/* Fill plus accent_on rather than an accent underline: an accent mark on
+   bg_soft is 2.76:1 on Midnight Red, below the 3:1 non-text floor. */
+menubar > menuitem:hover {
+  background-color: @vl_accent;
+  color: @vl_accent_on;
+}
+
+/* A popover is a menu that is not a menu node — same surface, same
+   boundary, so a Whisker-style popup and a dropdown read as one family. */
+popover,
+popover.background {
+  background-color: @vl_bg_overlay;
+  color: @vl_fg;
+  border: 1px solid @vl_control_border;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+popover separator {
+  background-color: @vl_border;
+}
+
 headerbar {
   background-color: @vl_bg_soft;
   color: @vl_fg;
   border-bottom: 1px solid @vl_border;
+}
+
+/* A toolbar painted nothing, so it merged into the window and its buttons
+   floated on the canvas. Same surface as headerbar — they are the same
+   chrome band in different widgets. */
+toolbar,
+.toolbar {
+  background-color: @vl_bg_soft;
+  color: @vl_fg;
+  padding: 4px;
+  border-bottom: 1px solid @vl_control_border;
+}
+
+actionbar > revealer > box {
+  background-color: @vl_bg_soft;
+  color: @vl_fg;
+  padding: 8px;
+  border-top: 1px solid @vl_control_border;
+}
+
+/* Path bars and tool buttons are flat until touched: chrome buttons that
+   each drew a full border would turn a toolbar into a grid. */
+toolbar button,
+.toolbar button,
+button.flat {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+toolbar button:hover,
+.toolbar button:hover,
+button.flat:hover {
+  background-color: alpha(@vl_accent, 0.2);
+  border-color: @vl_control_border;
 }
 
 scrollbar {

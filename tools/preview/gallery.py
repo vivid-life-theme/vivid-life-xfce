@@ -23,6 +23,12 @@ except (ImportError, ValueError):
     )
 
 
+# Popovers created by the sections, popped up by main() once the window is
+# mapped — a popover cannot be shown before its relative-to widget is on
+# screen, and an unshown one contributes nothing to the capture.
+POPOVERS = []
+
+
 def section(title):
     """A titled frame; every widget group in the gallery sits in one."""
     frame = Gtk.Frame(label=title)
@@ -108,6 +114,13 @@ def buttons_section():
     for icon in ("go-previous", "go-next", "view-refresh", "document-open"):
         toolbar.insert(Gtk.ToolButton(icon_name=icon), -1)
     box.pack_start(toolbar, False, False, 0)
+
+    action = Gtk.ActionBar()
+    action.pack_start(Gtk.Button(label="Cancel"))
+    apply_button = Gtk.Button(label="Apply")
+    apply_button.get_style_context().add_class("suggested-action")
+    action.pack_end(apply_button)
+    box.pack_start(action, False, False, 0)
     return frame
 
 
@@ -261,6 +274,27 @@ def menus_section():
         inline.pack_start(item, False, False, 0)
     inline.set_halign(Gtk.Align.START)
     box.pack_start(inline, False, False, 0)
+
+    # A real Gtk.Popover, not a class-styled Box: `popover` is an element-name
+    # selector, and a Box carrying a "popover" style class matches .popover
+    # instead — it would never exercise the rule. GTK3 draws a popover inside
+    # its toplevel, so it does land in the window grab; POPOVERS collects them
+    # for main() to pop up once the window is on screen.
+    trigger = Gtk.MenuButton(label="Open a popover")
+    trigger.set_halign(Gtk.Align.START)
+    popover = Gtk.Popover()
+    popover.set_relative_to(trigger)
+    popover.set_position(Gtk.PositionType.RIGHT)
+    inner = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+    inner.set_border_width(8)
+    inner.pack_start(label("Popover heading"), False, False, 0)
+    inner.pack_start(Gtk.Separator(), False, False, 0)
+    inner.pack_start(label("Popover body text"), False, False, 0)
+    inner.show_all()
+    popover.add(inner)
+    trigger.set_popover(popover)
+    POPOVERS.append(popover)
+    box.pack_start(trigger, False, False, 0)
     return frame
 
 
@@ -437,6 +471,8 @@ def main():
     if args.screenshot:
         capture(window, args.screenshot)
     window.show_all()
+    for popover in POPOVERS:
+        popover.popup()
     Gtk.main()
 
 

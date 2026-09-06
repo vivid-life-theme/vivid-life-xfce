@@ -56,6 +56,10 @@ test("renderGtk3Css styles core widgets", () => {
     "treeview",
     "iconview",
     "list row",
+    "menubar",
+    "popover",
+    "toolbar",
+    "actionbar",
   ]) {
     assert.ok(css.includes(selector), `expected CSS to style ${selector}`);
   }
