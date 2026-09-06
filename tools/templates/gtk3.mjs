@@ -2,150 +2,38 @@ import { buildContext } from "./context.mjs";
 import * as tokens from "./gtk3/_tokens.mjs";
 import * as base from "./gtk3/base.mjs";
 import * as button from "./gtk3/button.mjs";
+import * as entry from "./gtk3/entry.mjs";
+import * as checkRadio from "./gtk3/check-radio.mjs";
+import * as notebook from "./gtk3/notebook.mjs";
+import * as menu from "./gtk3/menu.mjs";
+import * as headerBars from "./gtk3/header-bars.mjs";
+import * as scrollbar from "./gtk3/scrollbar.mjs";
+import * as progress from "./gtk3/progress.mjs";
+import * as tooltip from "./gtk3/tooltip.mjs";
+import * as selection from "./gtk3/selection.mjs";
+import * as infobar from "./gtk3/infobar.mjs";
 
-// Cascade order is part of the contract: base first so per-widget rules
-// override it, selection last so it wins without relying on specificity —
-// *:selected uses the universal selector, which contributes zero specificity
-// and loses to any element or class selector regardless of source order.
-export const GTK3_MODULES = [tokens, base, button];
-
-const REMAINING_CSS = `entry {
-  background-color: @vl_bg_sunk;
-  color: @vl_fg;
-  border: 1px solid @vl_border;
-  border-radius: 4px;
-  padding: 4px 6px;
-}
-
-entry:focus {
-  border-color: @vl_accent;
-}
-
-check,
-radio {
-  background-color: @vl_bg_soft;
-  border: 1px solid @vl_border;
-}
-
-check:checked,
-radio:checked {
-  background-color: @vl_accent;
-  border-color: @vl_accent;
-  color: @vl_accent_on;
-}
-
-notebook > header {
-  background-color: @vl_bg_soft;
-  border-color: @vl_border;
-}
-
-notebook > header tab {
-  color: @vl_fg_muted;
-  padding: 6px 12px;
-}
-
-notebook > header tab:checked {
-  color: @vl_fg;
-  border-bottom: 2px solid @vl_accent;
-}
-
-menu,
-.menu {
-  background-color: @vl_bg_overlay;
-  color: @vl_fg;
-  border: 1px solid @vl_border;
-  border-radius: 6px;
-  padding: 4px;
-}
-
-menuitem {
-  padding: 6px 10px;
-  border-radius: 4px;
-}
-
-menuitem:hover {
-  background-color: alpha(@vl_accent, 0.2);
-}
-
-headerbar {
-  background-color: @vl_bg_soft;
-  color: @vl_fg;
-  border-bottom: 1px solid @vl_border;
-}
-
-scrollbar {
-  background-color: transparent;
-}
-
-scrollbar slider {
-  /* border.strong fails WCAG 1.4.11 (3:1, non-text UI) against surface.bg
-     on Twilight (1.909:1) — text.fg_subtle clears 3:1 on all four flavors. */
-  background-color: @vl_fg_subtle;
-  border-radius: 6px;
-  min-width: 6px;
-  min-height: 6px;
-}
-
-scrollbar slider:hover {
-  background-color: @vl_accent;
-}
-
-progressbar > trough {
-  background-color: @vl_bg_sunk;
-  border-radius: 4px;
-}
-
-progressbar > trough > progress {
-  background-color: @vl_accent;
-  border-radius: 4px;
-}
-
-tooltip {
-  background-color: @vl_bg_overlay;
-  color: @vl_fg;
-  border: 1px solid @vl_border;
-}
-
-/* Text selection (entry/textview) only — the design system's state.selection
-   token is a deliberately muted blend, distinct from the row/menu-item
-   "selected" affordance below. */
-selection {
-  background-color: @vl_selection;
-  color: @vl_fg;
-}
-
-/* *:selected covers listbox/treeview rows and menu items (Whisker Menu
-   categories, the Appearance theme list, etc.) and needs to read as clearly
-   selected. Opaque on purpose: *:selected is a universal selector with no
-   single backdrop, so this reuses the same solid accent + accent_on pairing
-   as button:active/check:checked rather than a translucent overlay whose
-   contrast against an arbitrary ancestor can't be verified. */
-*:selected {
-  background-color: @vl_accent;
-  color: @vl_accent_on;
-}
-
-/* Subtitle/secondary labels (e.g. the "Gtk3, Gtk2, Xfwm4" line under a theme
-   name) are commonly drawn with .dim-label's baked-in opacity: 0.55, or an
-   app-set foreground colour, neither of which follows *:selected's color
-   automatically. Force both back to full contrast on a selected row. */
-*:selected label,
-*:selected .dim-label {
-  color: @vl_accent_on;
-  opacity: 1;
-}
-
-.warning {
-  color: @vl_warning;
-}
-
-.error {
-  color: @vl_danger;
-}
-
-.success {
-  color: @vl_success;
-}`;
+// Cascade order is part of the contract: _tokens first so the @define-color
+// names exist before any rule references them, then base so per-widget rules
+// override it. The rest is source order for its own sake — every selector
+// here is specific enough to stand on its own, and the one universal-selector
+// block (*:selected, zero specificity) is deliberately paired with a
+// class-selector override rather than relying on where it sits.
+export const GTK3_MODULES = [
+  tokens,
+  base,
+  button,
+  entry,
+  checkRadio,
+  notebook,
+  menu,
+  headerBars,
+  scrollbar,
+  progress,
+  tooltip,
+  selection,
+  infobar,
+];
 
 export function renderGtk3Css(flavorBlock, accentHex, accentOnHex) {
   const ctx = buildContext(flavorBlock, accentHex, accentOnHex);
@@ -153,7 +41,5 @@ export function renderGtk3Css(flavorBlock, accentHex, accentOnHex) {
   return `/* Generated by tools/generate.mjs — do not edit by hand. */
 
 ${fragments.join("\n\n")}
-
-${REMAINING_CSS}
 `;
 }
