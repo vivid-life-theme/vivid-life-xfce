@@ -11,7 +11,8 @@
     "test": "node --test 'tools/**/*.test.mjs'",
     "generate": "node tools/generate.mjs",
     "check": "node tools/generate.mjs --check",
-    "preview": "/usr/bin/python3 tools/preview/gallery.py"
+    "preview": "/usr/bin/python3 tools/preview/gallery.py",
+    "preview:shots": "sh tools/preview/shots.sh"
   },
   "dependencies": {
     "@vivid-life-theme/design-system": "0.8.0"
