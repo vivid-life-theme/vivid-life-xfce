@@ -3,6 +3,8 @@ import * as tokens from "./gtk3/_tokens.mjs";
 import * as base from "./gtk3/base.mjs";
 import * as button from "./gtk3/button.mjs";
 import * as entry from "./gtk3/entry.mjs";
+import * as spinbutton from "./gtk3/spinbutton.mjs";
+import * as scale from "./gtk3/scale.mjs";
 import * as checkRadio from "./gtk3/check-radio.mjs";
 import * as switchWidget from "./gtk3/switch.mjs";
 import * as notebook from "./gtk3/notebook.mjs";
@@ -25,6 +27,8 @@ export const GTK3_MODULES = [
   base,
   button,
   entry,
+  spinbutton,
+  scale,
   checkRadio,
   switchWidget,
   notebook,

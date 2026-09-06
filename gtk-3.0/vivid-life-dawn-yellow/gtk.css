@@ -105,6 +105,88 @@ entry:focus {
   border-color: @vl_accent;
 }
 
+combobox arrow {
+  color: @vl_fg_muted;
+  min-width: 16px;
+  min-height: 16px;
+}
+
+combobox button {
+  border-radius: 4px;
+}
+
+/* GTK3 draws a spin button as an entry with two button children. Styling
+   the outer node and neutralising the children keeps it reading as one
+   field rather than a text box wedged between two buttons. */
+spinbutton {
+  background-color: @vl_bg_sunk;
+  color: @vl_fg;
+  border: 1px solid @vl_control_border;
+  border-radius: 4px;
+}
+
+spinbutton entry {
+  background-color: transparent;
+  border: none;
+  padding: 4px 8px;
+}
+
+spinbutton button {
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  color: @vl_fg_muted;
+  padding: 0 8px;
+}
+
+spinbutton button:hover {
+  background-color: alpha(@vl_accent, 0.2);
+  color: @vl_fg;
+}
+
+spinbutton button:disabled {
+  color: @vl_fg_disabled;
+}
+
+/* A scale drew as bare text: GTK paints none of trough, highlight or
+   slider by default, so with no rules the widget is an empty allocation
+   with only its value label visible. */
+scale trough {
+  background-color: @vl_bg_sunk;
+  border: 1px solid @vl_control_border;
+  border-radius: 9999px;
+  min-height: 4px;
+  min-width: 4px;
+}
+
+scale highlight {
+  background-color: @vl_accent;
+  border-radius: 9999px;
+}
+
+/* The knob is the control boundary colour rather than the accent: it
+   overlaps the accent highlight for most of the scale's travel, and accent
+   on accent has no edge at all. */
+scale slider {
+  background-color: @vl_control_border;
+  border-radius: 9999px;
+  min-width: 16px;
+  min-height: 16px;
+  margin: -8px;
+}
+
+scale slider:hover {
+  background-color: @vl_accent;
+}
+
+scale:disabled slider {
+  background-color: @vl_fg_disabled;
+}
+
+scale marks label {
+  color: @vl_fg_muted;
+}
+
 check,
 radio {
   background-color: @vl_bg_soft;

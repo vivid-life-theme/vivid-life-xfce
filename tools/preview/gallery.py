@@ -159,6 +159,17 @@ def inputs_section():
     scale.set_value(60)
     scale.set_size_request(220, -1)
     box.pack_start(row(label("Scale:"), scale), False, False, 0)
+
+    marked = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, 0, 100, 1)
+    marked.set_value(35)
+    marked.set_size_request(220, -1)
+    for position in (0, 50, 100):
+        marked.add_mark(position, Gtk.PositionType.BOTTOM, str(position))
+    disabled_scale = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, 0, 100, 1)
+    disabled_scale.set_value(80)
+    disabled_scale.set_size_request(160, -1)
+    disabled_scale.set_sensitive(False)
+    box.pack_start(row(label("Marks:"), marked, disabled_scale), False, False, 0)
     return frame
 
 
