@@ -209,11 +209,14 @@ selection {
 }
 
 /* Subtitle/secondary labels (e.g. the "Gtk3, Gtk2, Xfwm4" line under a theme
-   name) are commonly drawn with .dim-label's baked-in opacity: 0.55, or an
-   app-set foreground colour, neither of which follows *:selected's color
-   automatically. Force both back to full contrast on a selected row. */
-*:selected label,
-*:selected .dim-label {
+   name) carry .dim-label's baked-in opacity: 0.55, which does not follow the
+   row's selected state — so they stay washed out against the accent fill.
+   Scoped to those two classes on purpose: the broader *:selected label rule
+   this replaces also recoloured .warning/.error/.success text inside a
+   selected row, flattening semantic colours that are meant to stay
+   meaningful when the row is selected. */
+*:selected .dim-label,
+*:selected .subtitle {
   color: @vl_accent_on;
   opacity: 1;
 }
