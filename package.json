@@ -10,7 +10,8 @@
   "scripts": {
     "test": "node --test 'tools/**/*.test.mjs'",
     "generate": "node tools/generate.mjs",
-    "check": "node tools/generate.mjs --check"
+    "check": "node tools/generate.mjs --check",
+    "preview": "/usr/bin/python3 tools/preview/gallery.py"
   },
   "dependencies": {
     "@vivid-life-theme/design-system": "0.8.0"
