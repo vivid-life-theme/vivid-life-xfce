@@ -11,6 +11,7 @@
 @define-color vl_border #a3a3a3;
 @define-color vl_border_subtle #bdbdbd;
 @define-color vl_border_strong #404040;
+@define-color vl_control_border #404040;
 @define-color vl_accent #7c2d12;
 @define-color vl_accent_on #f5f5f5;
 @define-color vl_selection #bdbdbd;
@@ -32,7 +33,7 @@ window,
 button {
   background-color: @vl_bg_soft;
   color: @vl_fg;
-  border: 1px solid @vl_border;
+  border: 1px solid @vl_control_border;
   border-radius: 4px;
   padding: 4px 10px;
 }
@@ -65,7 +66,7 @@ button.destructive-action {
 entry {
   background-color: @vl_bg_sunk;
   color: @vl_fg;
-  border: 1px solid @vl_border;
+  border: 1px solid @vl_control_border;
   border-radius: 4px;
   padding: 4px 6px;
 }
@@ -77,7 +78,7 @@ entry:focus {
 check,
 radio {
   background-color: @vl_bg_soft;
-  border: 1px solid @vl_border;
+  border: 1px solid @vl_control_border;
 }
 
 check:checked,
@@ -106,7 +107,7 @@ menu,
 .menu {
   background-color: @vl_bg_overlay;
   color: @vl_fg;
-  border: 1px solid @vl_border;
+  border: 1px solid @vl_control_border;
   border-radius: 6px;
   padding: 4px;
 }
@@ -156,7 +157,7 @@ progressbar > trough > progress {
 tooltip {
   background-color: @vl_bg_overlay;
   color: @vl_fg;
-  border: 1px solid @vl_border;
+  border: 1px solid @vl_control_border;
 }
 
 /* Text selection (entry/textview) only — the design system's state.selection

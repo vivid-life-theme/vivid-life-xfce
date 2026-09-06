@@ -10,6 +10,7 @@ export function render(ctx) {
 @define-color vl_border ${ctx.border.default};
 @define-color vl_border_subtle ${ctx.border.subtle};
 @define-color vl_border_strong ${ctx.border.strong};
+@define-color vl_control_border ${ctx.control.border};
 @define-color vl_accent ${ctx.accent};
 @define-color vl_accent_on ${ctx.accentOn};
 @define-color vl_selection ${ctx.state.selection};

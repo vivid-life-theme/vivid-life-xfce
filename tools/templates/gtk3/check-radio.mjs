@@ -2,7 +2,7 @@ export function render(ctx) {
   return `check,
 radio {
   background-color: @vl_bg_soft;
-  border: 1px solid @vl_border;
+  border: 1px solid @vl_control_border;
 }
 
 check:checked,

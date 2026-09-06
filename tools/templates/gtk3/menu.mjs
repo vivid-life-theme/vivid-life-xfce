@@ -5,7 +5,7 @@ export function render(ctx) {
 .menu {
   background-color: @vl_bg_overlay;
   color: @vl_fg;
-  border: 1px solid @vl_border;
+  border: 1px solid @vl_control_border;
   border-radius: 6px;
   padding: 4px;
 }

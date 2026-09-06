@@ -4,7 +4,7 @@ export function render(ctx) {
   return `button {
   background-color: @vl_bg_soft;
   color: @vl_fg;
-  border: 1px solid @vl_border;
+  border: 1px solid @vl_control_border;
   border-radius: 4px;
   padding: 4px 10px;
 }
@@ -37,6 +37,12 @@ button.destructive-action {
 
 export function contrastPairs(ctx) {
   return [
+    {
+      label: "button boundary",
+      fg: ctx.control.border,
+      bg: ctx.surface.bg_soft,
+      rule: "nontext",
+    },
     {
       label: "button label",
       fg: ctx.text.fg,
