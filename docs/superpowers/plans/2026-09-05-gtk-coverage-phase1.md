@@ -1,6 +1,6 @@
 # GTK Widget Coverage — Phase 1 Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking; `- [~]` marks a step whose verification was substituted, with the substitution quoted beneath it.
 
 **Goal:** Put a verification harness, a per-widget module structure, and a generalized contrast gate behind the GTK3 stylesheet, then apply the three fixes that need no further diagnosis.
 
@@ -33,7 +33,7 @@
 - Consumes: `flavorBlock(flavor)` from `tools/lib/tokens.mjs`, `contrastRatio(a, b)` from `tools/lib/contrast.mjs`
 - Produces: `controlColors(flavorBlockOrName) -> { border: string, source: string }` where `border` is a `#rrggbb` hex and `source` is one of `"border.strong"`, `"text.fg_subtle"`, `"text.fg_muted"`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `tools/lib/tokens.test.mjs`:
 
@@ -77,12 +77,12 @@ test("controlColors accepts a flavor block as well as a flavor name", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `node --test tools/lib/tokens.test.mjs`
 Expected: FAIL — `controlColors is not a function` / `does not provide an export named 'controlColors'`
 
-- [ ] **Step 3: Implement `controlColors`**
+- [x] **Step 3: Implement `controlColors`**
 
 Add to `tools/lib/tokens.mjs`, importing `contrastRatio` at the top:
 
@@ -127,17 +127,17 @@ export function controlColors(flavorOrBlock) {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `node --test tools/lib/tokens.test.mjs`
 Expected: PASS
 
-- [ ] **Step 5: Confirm generated output is untouched**
+- [x] **Step 5: Confirm generated output is untouched**
 
 Run: `npm run check`
 Expected: `Generated output matches tokens — no drift.`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tools/lib/tokens.mjs tools/lib/tokens.test.mjs
@@ -169,7 +169,7 @@ existing token that does, pending design-system#15."
   - Each module exports `render(ctx) -> string` (a CSS fragment, no trailing blank line)
   - `gtk3.mjs` keeps its existing `renderGtk3Css(flavorBlock, accentHex, accentOnHex) -> string` signature and additionally exports `GTK3_MODULES` (an ordered array of module namespace objects)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tools/templates/context.test.mjs`:
 
@@ -194,12 +194,12 @@ test("buildContext exposes the token groups and the derived control colors", () 
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `node --test tools/templates/context.test.mjs`
 Expected: FAIL — cannot find module `./context.mjs`
 
-- [ ] **Step 3: Create the context builder**
+- [x] **Step 3: Create the context builder**
 
 Create `tools/templates/context.mjs`:
 
@@ -223,12 +223,12 @@ export function buildContext(flavorBlock, accentHex, accentOnHex) {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `node --test tools/templates/context.test.mjs`
 Expected: PASS
 
-- [ ] **Step 5: Extract the first three modules**
+- [x] **Step 5: Extract the first three modules**
 
 Create `tools/templates/gtk3/_tokens.mjs`. Copy the `@define-color` block from `gtk3.mjs` verbatim, adding **no** new colors yet (`vl_control_border` arrives in Task 8; adding it now would change generated output and break the byte-identical proof):
 
@@ -257,7 +257,7 @@ export function render(ctx) {
 
 Create `tools/templates/gtk3/base.mjs` holding the `*` and `window, .background` rules, and `tools/templates/gtk3/button.mjs` holding every `button` rule — copied verbatim from `gtk3.mjs`, each `render()` returning the fragment with no leading or trailing blank line.
 
-- [ ] **Step 6: Turn `gtk3.mjs` into an index**
+- [x] **Step 6: Turn `gtk3.mjs` into an index**
 
 `gtk3.mjs` composes the extracted modules and keeps the not-yet-extracted CSS as one trailing literal. Joining with `\n\n` and appending a final `\n` is what preserves byte-identical output:
 
@@ -287,19 +287,19 @@ ${REMAINING_CSS}
 
 Keep `REMAINING_CSS` as a module-level template literal containing everything not yet extracted.
 
-- [ ] **Step 7: Prove the output did not change**
+- [x] **Step 7: Prove the output did not change**
 
 Run: `npm run check`
 Expected: `Generated output matches tokens — no drift.`
 
 **Do not run `npm run generate`.** `check` re-renders from the new modules and compares against the committed files; passing without regenerating is the proof the refactor was behavior-preserving. If it reports drift, the extraction changed whitespace — fix the fragment joining, do not regenerate to make it pass.
 
-- [ ] **Step 8: Run the full suite**
+- [x] **Step 8: Run the full suite**
 
 Run: `npm test`
 Expected: all tests pass (this run takes roughly 16–20 minutes; the xfwm4 rasterization dominates)
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add tools/templates/context.mjs tools/templates/context.test.mjs tools/templates/gtk3.mjs tools/templates/gtk3/
@@ -324,7 +324,7 @@ passes without regenerating."
 - Consumes: `buildContext` and the module shape from Task 2
 - Produces: `GTK3_MODULES` covering every rule; `REMAINING_CSS` deleted
 
-- [ ] **Step 1: Extract each remaining rule group verbatim**
+- [x] **Step 1: Extract each remaining rule group verbatim**
 
 One module per group, each `render(ctx)` returning the existing CSS unchanged:
 
@@ -343,7 +343,7 @@ One module per group, each `render(ctx)` returning the existing CSS unchanged:
 
 Preserve every existing comment, including the scrollbar's WCAG 1.4.11 note and the selection block's rationale.
 
-- [ ] **Step 2: Update the index and delete `REMAINING_CSS`**
+- [x] **Step 2: Update the index and delete `REMAINING_CSS`**
 
 ```js
 export const GTK3_MODULES = [
@@ -365,17 +365,17 @@ export const GTK3_MODULES = [
 
 `selection` stays last — see the cascade comment from Task 2.
 
-- [ ] **Step 3: Prove the output did not change**
+- [x] **Step 3: Prove the output did not change**
 
 Run: `npm run check`
 Expected: `Generated output matches tokens — no drift.` Again, do not regenerate.
 
-- [ ] **Step 4: Run the GTK3 template tests**
+- [x] **Step 4: Run the GTK3 template tests**
 
 Run: `node --test tools/templates/gtk3.test.mjs`
 Expected: PASS — the existing tests assert on `renderGtk3Css` output, whose signature and result are unchanged
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tools/templates/gtk3.mjs tools/templates/gtk3/
@@ -397,7 +397,7 @@ Every rule now lives in a per-widget module. Output still byte-identical."
 - Consumes: `GTK3_MODULES` from Task 3
 - Produces: no new exports
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 A module file that exists but is never composed produces no CSS and no error — exactly the silent gap this plan exists to prevent. Append to `tools/templates/gtk3.test.mjs`:
 
@@ -437,16 +437,16 @@ test("every composed module exports a render function", () => {
 });
 ```
 
-- [ ] **Step 2: Run it and confirm it passes against the current modules**
+- [x] **Step 2: Run it and confirm it passes against the current modules**
 
 Run: `node --test tools/templates/gtk3.test.mjs`
 Expected: PASS
 
-- [ ] **Step 3: Verify the test actually catches an orphan**
+- [x] **Step 3: Verify the test actually catches an orphan**
 
 Create a throwaway `tools/templates/gtk3/orphan.mjs` containing `export function render() { return ""; }`, re-run the test, confirm it FAILS with `gtk3/orphan.mjs exists but is not in GTK3_MODULES`, then delete the file and confirm it passes again.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tools/templates/gtk3.test.mjs
@@ -467,7 +467,7 @@ git commit -m "✅ test: fail when a gtk3 module is never composed"
 - Consumes: `buildContext`, `GTK3_MODULES`
 - Produces: each module additionally exports `contrastPairs(ctx) -> Array<{ label, fg, bg, rule, exempt? }>` where `rule` is `"text"` or `"nontext"`; modules emitting no color pairs may omit the export
 
-- [ ] **Step 1: Add `contrastPairs` to each module**
+- [x] **Step 1: Add `contrastPairs` to each module**
 
 Port the pairs `aa.test.mjs` asserts today into the module that emits them. `button.mjs`, for example:
 
@@ -511,7 +511,7 @@ export function contrastPairs(ctx) {
 
 Move the existing `shade()` helper out of `aa.test.mjs` into `tools/lib/contrast.mjs` and export it, so modules and tests share one implementation.
 
-- [ ] **Step 2: Rewrite the GTK half of `aa.test.mjs`**
+- [x] **Step 2: Rewrite the GTK half of `aa.test.mjs`**
 
 Replace the GTK entries in `pairsFor()` with a module walk. Keep the xfwm4 entries as the explicit list they are today — those templates are not being split:
 
@@ -560,7 +560,7 @@ test("every exemption is still needed", () => {
 
 Delete the old standalone `fg_disabled` test — the exemption test above supersedes it and covers all 24 combinations rather than Midnight alone.
 
-- [ ] **Step 3: Add a test that the gate has real coverage**
+- [x] **Step 3: Add a test that the gate has real coverage**
 
 A module walk that silently returns nothing would pass vacuously:
 
@@ -575,12 +575,12 @@ test("the module walk yields pairs for every flavor and variant", () => {
 });
 ```
 
-- [ ] **Step 4: Run the suite**
+- [x] **Step 4: Run the suite**
 
 Run: `node --test tools/aa.test.mjs`
 Expected: PASS, with 24 `WCAG — <flavor> <variant>` tests plus the exemption and coverage tests
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tools/aa.test.mjs tools/lib/contrast.mjs tools/templates/gtk3/
@@ -605,7 +605,7 @@ their own pairs and the gate walks all of them across all 24 combinations."
 - Consumes: nothing from earlier tasks (runs against installed themes)
 - Produces: `npm run preview -- --theme <name>`; `gallery.py --theme <name> [--screenshot <path>]`
 
-- [ ] **Step 1: Write the gallery**
+- [x] **Step 1: Write the gallery**
 
 Create `tools/preview/gallery.py` with `#!/usr/bin/python3` as the shebang. It must fail loudly, not with a bare traceback, when the bindings are missing:
 
@@ -633,12 +633,15 @@ Build sections mirroring `preview/01-kitchen-sink.html` — surfaces, text layer
 
 `--screenshot PATH` renders, waits for one frame via `GLib.idle_add`, writes the PNG with `Gdk.pixbuf_get_from_window`, and quits.
 
-- [ ] **Step 2: Verify it runs interactively**
+- [~] **Step 2: Verify it runs interactively**
 
 Run: `/usr/bin/python3 tools/preview/gallery.py --theme vivid-life-midnight-blue`
 Expected: a window opens showing every section
 
-- [ ] **Step 3: Probe that `GTK_THEME` applies headlessly**
+> Substituted: verified headlessly under `xvfb-run --screenshot` instead of
+> interactively, and the capture was reviewed section by section.
+
+- [x] **Step 3: Probe that `GTK_THEME` applies headlessly**
 
 This is the spec's flagged risk — settle it before building the capture loop on top:
 
@@ -653,11 +656,11 @@ magick compare -metric AE /tmp/probe-vivid-life-midnight-blue.png \
 
 Expected: a large non-zero pixel difference. If it reports 0, `GTK_THEME` is not applying — fall back to writing a temporary `settings.ini` with `gtk-theme-name` and pointing `XDG_CONFIG_HOME` at it for the run, as the spec's risk section describes.
 
-- [ ] **Step 4: Wire up the npm script and ignore the output directory**
+- [x] **Step 4: Wire up the npm script and ignore the output directory**
 
 Add to `package.json`: `"preview": "/usr/bin/python3 tools/preview/gallery.py"`. Add `tools/preview/out/` to `.gitignore`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tools/preview/gallery.py package.json .gitignore
@@ -681,7 +684,7 @@ one screenshot instead of surfacing as a bug report from a real app."
 - Consumes: `gallery.py --screenshot` from Task 6
 - Produces: `npm run preview:shots`; PNGs at `tools/preview/out/<theme>.png`; contact sheets at `tools/preview/out/contact-<flavor>.png`
 
-- [ ] **Step 1: Write the capture script**
+- [x] **Step 1: Write the capture script**
 
 `tools/preview/shots.sh` loops all 24 themes, captures each under `xvfb-run`, then montages one contact sheet per flavor with the six variants labelled. It must skip cleanly with a clear message if `xvfb-run` or `magick` is absent, so a fresh clone never fails on missing optional tooling.
 
@@ -693,16 +696,16 @@ Register it in the same step, so the next step has something to run — add to `
 
 Mark the script executable: `chmod +x tools/preview/shots.sh`
 
-- [ ] **Step 2: Run it**
+- [x] **Step 2: Run it**
 
 Run: `npm run preview:shots`
 Expected: 24 PNGs plus 4 contact sheets in `tools/preview/out/`
 
-- [ ] **Step 3: Review the Midnight sheet**
+- [x] **Step 3: Review the Midnight sheet**
 
 Open `tools/preview/out/contact-midnight.png`. Confirm the unstyled widgets the spec names are visibly unstyled — `switch` especially should show as a bare tick and circle. This is the baseline the next tasks are measured against.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tools/preview/shots.sh package.json
@@ -723,7 +726,7 @@ git commit -m "✨ feat: render per-flavor contact sheets of the widget gallery"
 - Consumes: `ctx.control.border` from Task 1, `contrastPairs` from Task 5
 - Produces: `@vl_control_border` available to every GTK3 module
 
-- [ ] **Step 1: Add the failing contrast pair first**
+- [x] **Step 1: Add the failing contrast pair first**
 
 In `button.mjs`, add the boundary pair before changing any CSS:
 
@@ -731,31 +734,31 @@ In `button.mjs`, add the boundary pair before changing any CSS:
 { label: "button boundary", fg: ctx.border.default, bg: ctx.surface.bg_soft, rule: "nontext" },
 ```
 
-- [ ] **Step 2: Run the gate and watch it fail**
+- [x] **Step 2: Run the gate and watch it fail**
 
 Run: `node --test tools/aa.test.mjs`
 Expected: FAIL — `button boundary: #404040 on #404040 is 1.00:1, below 3:1` on Midnight. This is the defect reproduced as a test.
 
-- [ ] **Step 3: Emit and use the derived color**
+- [x] **Step 3: Emit and use the derived color**
 
 Add to `_tokens.mjs`: `@define-color vl_control_border ${ctx.control.border};`. Switch `border: 1px solid @vl_border` to `@vl_control_border` in `button.mjs`, `entry.mjs`, `check-radio.mjs`, `menu.mjs` and `tooltip.mjs`. Update the pair from Step 1 to `fg: ctx.control.border`.
 
-- [ ] **Step 4: Run the gate again**
+- [x] **Step 4: Run the gate again**
 
 Run: `node --test tools/aa.test.mjs`
 Expected: PASS across all 24
 
-- [ ] **Step 5: Regenerate and review**
+- [x] **Step 5: Regenerate and review**
 
 Run: `npm run generate && npm run check && npm run preview:shots`
 
 Open `tools/preview/out/contact-midnight.png`. Midnight resolves to `text.fg_muted` (`#d4d4d4`), the lightest of the candidates — the spec flags that this may read as heavier than intended. If borders look like a wireframe rather than a themed control, do **not** relax the 3:1 requirement; add an intermediate candidate to the chain in `controlColors` and re-run.
 
-- [ ] **Step 6: Check whether button margins are still needed**
+- [x] **Step 6: Check whether button margins are still needed**
 
 The original report was that buttons "have no space around them". Look at the Fensterverwaltung-style button row in the gallery now that borders are visible. Only if adjacent buttons still read as one mass, add `margin: 2px` to `button` — otherwise skip it, since the invisible border was the actual cause.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add tools/templates/gtk3/ gtk-3.0/
@@ -781,7 +784,7 @@ control boundary instead, gated by the contrast suite."
 - Consumes: `ctx.control.border`, the module shape from Task 2
 - Produces: a `switch` module composed after `check-radio`
 
-- [ ] **Step 1: Write the module**
+- [x] **Step 1: Write the module**
 
 ```js
 export function render() {
@@ -839,18 +842,18 @@ export function contrastPairs(ctx) {
 }
 ```
 
-- [ ] **Step 2: Compose it and run the gate**
+- [x] **Step 2: Compose it and run the gate**
 
 Add `switch` to `GTK3_MODULES` after `checkRadio`.
 Run: `node --test tools/aa.test.mjs`
 Expected: PASS
 
-- [ ] **Step 3: Regenerate and verify visually**
+- [x] **Step 3: Regenerate and verify visually**
 
 Run: `npm run generate && npm run check && npm run preview:shots`
 Open a contact sheet and confirm the switch now renders as a filled pill with a round slider, distinguishable between on and off states.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tools/templates/gtk3.mjs tools/templates/gtk3/switch.mjs gtk-3.0/
@@ -874,7 +877,7 @@ where the Appearance dialog's Xfwm4 toggle should be."
 - Consumes: the `selection` module from Task 3
 - Produces: no new exports
 
-- [ ] **Step 1: Narrow the selector**
+- [x] **Step 1: Narrow the selector**
 
 The rule shipped in `ee09a97` sets `color` on _every_ label under a selected row, which also flattens `.warning`, `.error` and `.success` text inside selected rows. Restrict it to the dim/subtitle labels it was written for:
 
@@ -888,17 +891,22 @@ The rule shipped in `ee09a97` sets `color` on _every_ label under a selected row
 
 Update the comment to record the narrowed intent: subtitle text carries `.dim-label`'s baked-in `opacity: 0.55`, which does not follow the row's selected state; semantic label colors are deliberately left alone so they stay meaningful when selected.
 
-- [ ] **Step 2: Regenerate and verify**
+- [~] **Step 2: Regenerate and verify**
 
 Run: `npm run generate && npm run check`
 Then open the Appearance dialog and confirm the `Gtk3, Gtk2, Xfwm4` subtitle under a selected theme name is still fully legible against the accent fill.
 
-- [ ] **Step 3: Run the full suite**
+> Substituted: confirmed against the gallery's treeview and listbox selected
+> rows, which reproduce the same `.dim-label` subtitle, not the real dialog.
+
+- [x] **Step 3: Run the full suite**
 
 Run: `npm test`
 Expected: all tests pass
 
-- [ ] **Step 4: Commit**
+> Result: 116 tests, 116 pass, 0 fail (396s).
+
+- [x] **Step 4: Commit**
 
 ```bash
 git add tools/templates/gtk3/selection.mjs gtk-3.0/
