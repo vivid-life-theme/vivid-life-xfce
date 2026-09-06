@@ -1,6 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { renderGtk3Css } from "./gtk3.mjs";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { renderGtk3Css, GTK3_MODULES } from "./gtk3.mjs";
 import { flavorBlock, resolveAccent, accentOn } from "../lib/tokens.mjs";
 
 test("renderGtk3Css embeds the flavor surface/text colors", () => {
@@ -43,5 +46,36 @@ test("renderGtk3Css styles core widgets", () => {
     "menuitem",
   ]) {
     assert.ok(css.includes(selector), `expected CSS to style ${selector}`);
+  }
+});
+
+// A module file that exists but is never composed produces no CSS and no
+// error — exactly the silent gap the module split could otherwise introduce.
+test("every module file in gtk3/ is composed by the index", async () => {
+  const dir = fileURLToPath(new URL("./gtk3/", import.meta.url));
+  const files = fs
+    .readdirSync(dir)
+    .filter((f) => f.endsWith(".mjs") && !f.endsWith(".test.mjs"));
+  const composed = new Set(
+    await Promise.all(
+      GTK3_MODULES.map(async (m) => {
+        for (const f of files) {
+          if ((await import(path.join(dir, f))).render === m.render) return f;
+        }
+        return null;
+      }),
+    ),
+  );
+  for (const file of files) {
+    assert.ok(
+      composed.has(file),
+      `gtk3/${file} exists but is not in GTK3_MODULES`,
+    );
+  }
+});
+
+test("every composed module exports a render function", () => {
+  for (const module of GTK3_MODULES) {
+    assert.equal(typeof module.render, "function");
   }
 });
