@@ -83,7 +83,7 @@ The sweep adds far more geometry than phase 1 did. Without this, every new modul
 - Consumes: `rawTokens` from `tools/lib/tokens.mjs`
 - Produces: `ctx.space` (a map of the design system's spacing steps, keys `"0"`,`"1"`,`"2"`,`"3"`,`"4"`,`"5"`,`"6"`,`"8"`,`"10"`,`"12"`,`"16"`,`"20"`,`"24"`,`"px"`) and `ctx.radius` (keys `none`, `sm`, `md`, `lg`, `xl`, `pill`)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `tools/templates/context.test.mjs`:
 
@@ -104,12 +104,12 @@ test("buildContext exposes the design system's spacing and radius scales", () =>
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `node --test tools/templates/context.test.mjs`
 Expected: FAIL — `Cannot read properties of undefined (reading '1')`
 
-- [ ] **Step 3: Widen the context builder**
+- [x] **Step 3: Widen the context builder**
 
 In `tools/templates/context.mjs`, change the import line and add two fields:
 
@@ -129,17 +129,17 @@ Add to the returned object, after `control`:
     radius: rawTokens.radii,
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `node --test tools/templates/context.test.mjs`
 Expected: PASS
 
-- [ ] **Step 5: Confirm generated output is untouched**
+- [x] **Step 5: Confirm generated output is untouched**
 
 Run: `npm run check`
 Expected: `Generated output matches tokens — no drift.` Widening `ctx` must not move a byte; if it does, a module was already reading a field this shadows.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tools/templates/context.mjs tools/templates/context.test.mjs
@@ -167,7 +167,7 @@ The spec's definition of done item 4 is "the gallery is diffed against `gtk3-wid
 - Consumes: nothing from Task 1
 - Produces: `npm run preview:factory`; PNGs at `tools/preview/out/factory-<theme>.png`
 
-- [ ] **Step 1: Install the optional dependency**
+- [x] **Step 1: Install the optional dependency**
 
 This is the one step in this plan that installs a system package. Run it yourself — do not run `apt` unprompted on the user's behalf:
 
@@ -179,7 +179,7 @@ Then confirm: `command -v gtk3-widget-factory`
 
 If you decline to install it, every later task still works; Task 10 Step 2 records the cross-check as not performed rather than claiming it passed.
 
-- [ ] **Step 2: Write the capture script**
+- [x] **Step 2: Write the capture script**
 
 Create `tools/preview/factory.sh`:
 
@@ -233,7 +233,7 @@ done
 
 Mark it executable: `chmod +x tools/preview/factory.sh`
 
-- [ ] **Step 3: Register the npm script**
+- [x] **Step 3: Register the npm script**
 
 Add to `package.json` `scripts`, after `preview:shots`:
 
@@ -241,13 +241,13 @@ Add to `package.json` `scripts`, after `preview:shots`:
 "preview:factory": "sh tools/preview/factory.sh"
 ```
 
-- [ ] **Step 4: Lint and run it**
+- [x] **Step 4: Lint and run it**
 
 Run: `shellcheck tools/preview/factory.sh && npm run preview:factory`
 Expected with the package installed: two PNGs in `tools/preview/out/`.
 Expected without it: the skip message, exit 0, no error.
 
-- [ ] **Step 5: Confirm the capture is not blank**
+- [x] **Step 5: Confirm the capture is not blank**
 
 A blank grab and a working one both exit 0, so check before trusting it:
 
@@ -257,7 +257,7 @@ magick identify -format '%wx%h stddev=%[standard-deviation]\n' tools/preview/out
 
 Expected: a non-trivial standard deviation (the phase 1 gallery captures ran 10000–28000). A near-zero value means the factory had not mapped yet — raise the `sleep` and re-run.
 
-- [ ] **Step 6: Document the optional dependency**
+- [x] **Step 6: Document the optional dependency**
 
 Add to `README.md`, in whatever section lists development commands:
 
@@ -272,7 +272,7 @@ clone never fails on them.
     sudo apt install xvfb imagemagick gtk-3-examples
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add tools/preview/factory.sh package.json README.md
@@ -302,7 +302,7 @@ Closes three baseline defects at once: the flat surface ramp, the invisible fram
 - Consumes: `ctx.control.border`, `ctx.radius` from Task 1
 - Produces: no new exports; `base.mjs` gains `.view`, `frame`, `separator` rules and three `contrastPairs` entries
 
-- [ ] **Step 1: Extend the selector test**
+- [x] **Step 1: Extend the selector test**
 
 In `tools/templates/gtk3.test.mjs`, the existing `renderGtk3Css styles core widgets` test has an array of selectors. Add three entries to it:
 
@@ -312,12 +312,12 @@ In `tools/templates/gtk3.test.mjs`, the existing `renderGtk3Css styles core widg
     ".view",
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `node --test tools/templates/gtk3.test.mjs`
 Expected: FAIL — `expected CSS to style .view`. (`frame` and `separator` are substrings of nothing currently emitted either, but `.view` is the unambiguous one; all three should fail.)
 
-- [ ] **Step 3: Add the rules**
+- [x] **Step 3: Add the rules**
 
 Replace the whole of `tools/templates/gtk3/base.mjs` with:
 
@@ -391,12 +391,12 @@ export function contrastPairs(ctx) {
 }
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `node --test tools/templates/gtk3.test.mjs tools/aa.test.mjs`
 Expected: PASS. The exemption test tolerates `decorative separator` because `border.default` on `bg` fails 3:1 on at least one combination (it is 1.73:1 on Midnight); if it ever clears everywhere, that test tells you to drop the exemption.
 
-- [ ] **Step 5: Give the gallery an explicit separator**
+- [x] **Step 5: Give the gallery an explicit separator**
 
 In `tools/preview/gallery.py`, in `surfaces_section()`, after the surface panes loop and before `return frame`:
 
@@ -405,7 +405,7 @@ In `tools/preview/gallery.py`, in `surfaces_section()`, after the surface panes 
     box.pack_start(label("A horizontal separator sits above this line"), False, False, 0)
 ```
 
-- [ ] **Step 6: Regenerate, reinstall and re-capture**
+- [x] **Step 6: Regenerate, reinstall and re-capture**
 
 ```bash
 npm run generate && npm run check && ./install.sh --all && npm run preview:shots
@@ -413,7 +413,7 @@ npm run generate && npm run check && ./install.sh --all && npm run preview:shots
 
 `install.sh --all` refreshes `~/.themes` from the repo — the gallery renders installed themes, so a capture without it shows the previous build.
 
-- [ ] **Step 7: Confirm the ramp separated**
+- [x] **Step 7: Confirm the ramp separated**
 
 ```bash
 P=tools/preview/out/vivid-life-midnight-blue.png
@@ -422,7 +422,7 @@ for y in 57 97 137; do magick "$P" -format "%[pixel:p{200,$y}]\n" info:; done
 
 Expected: the `.view` pane now reads `srgb(10,10,10)` (`bg_sunk`) rather than `srgb(23,23,23)`. At the baseline all three read `srgb(23,23,23)`. Also open the capture and confirm each section's frame now has a visible hairline.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add tools/templates/gtk3/base.mjs tools/templates/gtk3.test.mjs tools/preview/gallery.py gtk-3.0/
@@ -453,7 +453,7 @@ Closes two more baseline defects. The levelbar is drawn nowhere at all; the info
 - Consumes: `ctx.radius`, `ctx.space` from Task 1; `ctx.control.border`
 - Produces: no new exports
 
-- [ ] **Step 1: Extend the selector test**
+- [x] **Step 1: Extend the selector test**
 
 Add to the selector array in `renderGtk3Css styles core widgets`:
 
@@ -463,12 +463,12 @@ Add to the selector array in `renderGtk3Css styles core widgets`:
     "spinner",
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `node --test tools/templates/gtk3.test.mjs`
 Expected: FAIL — `expected CSS to style infobar` (and `levelbar`, `spinner`).
 
-- [ ] **Step 3: Give the infobar a fill**
+- [x] **Step 3: Give the infobar a fill**
 
 Replace `tools/templates/gtk3/infobar.mjs` with:
 
@@ -569,7 +569,7 @@ export function contrastPairs(ctx) {
 }
 ```
 
-- [ ] **Step 4: Add the levelbar and spinner**
+- [x] **Step 4: Add the levelbar and spinner**
 
 Replace `tools/templates/gtk3/progress.mjs` with:
 
@@ -659,12 +659,12 @@ export function contrastPairs(ctx) {
 }
 ```
 
-- [ ] **Step 5: Run the gate**
+- [x] **Step 5: Run the gate**
 
 Run: `node --test tools/templates/gtk3.test.mjs tools/aa.test.mjs`
 Expected: PASS. Every pair above appears in the verified table; the tightest is `levelbar filled block` at 3.49:1 on Noon Orange.
 
-- [ ] **Step 6: Show the levelbar's offsets in the gallery**
+- [x] **Step 6: Show the levelbar's offsets in the gallery**
 
 In `tools/preview/gallery.py`, in `feedback_section()`, replace the single level bar with three at different offsets so `low`, `filled` and `high` are all reviewable:
 
@@ -681,17 +681,17 @@ Add a fourth infobar so the `question` fill is reviewable, in the message-type l
         (Gtk.MessageType.QUESTION, "Question message"),
 ```
 
-- [ ] **Step 7: Regenerate, reinstall, re-capture**
+- [x] **Step 7: Regenerate, reinstall, re-capture**
 
 ```bash
 npm run generate && npm run check && ./install.sh --all && npm run preview:shots
 ```
 
-- [ ] **Step 8: Confirm the bars are drawn**
+- [x] **Step 8: Confirm the bars are drawn**
 
 Open `tools/preview/out/vivid-life-midnight-blue.png`. The three level bars must be visible as filled blocks on a bordered trough — at the baseline that row measured `srgb(23,23,23)`, indistinguishable from the window. The infobars must show four distinct semantic fills, not `srgb(72,72,72)`.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add tools/templates/gtk3/infobar.mjs tools/templates/gtk3/progress.mjs tools/templates/gtk3.test.mjs tools/preview/gallery.py gtk-3.0/
@@ -720,7 +720,7 @@ Closes the last baseline defect: `scale` renders as bare text today because GTK 
 - Consumes: `ctx.radius`, `ctx.space`, `ctx.control.border`
 - Produces: two module namespace objects added to `GTK3_MODULES` as `scale` and `spinbutton`, composed after `entry`
 
-- [ ] **Step 1: Extend the selector test**
+- [x] **Step 1: Extend the selector test**
 
 Add to the selector array:
 
@@ -730,12 +730,12 @@ Add to the selector array:
     "combobox",
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `node --test tools/templates/gtk3.test.mjs`
 Expected: FAIL — `expected CSS to style scale`.
 
-- [ ] **Step 3: Write the scale module**
+- [x] **Step 3: Write the scale module**
 
 Create `tools/templates/gtk3/scale.mjs`:
 
@@ -824,7 +824,7 @@ export function contrastPairs(ctx) {
 }
 ```
 
-- [ ] **Step 4: Write the spinbutton module**
+- [x] **Step 4: Write the spinbutton module**
 
 Create `tools/templates/gtk3/spinbutton.mjs`:
 
@@ -895,7 +895,7 @@ export function contrastPairs(ctx) {
 }
 ```
 
-- [ ] **Step 5: Add the combobox arrow to `entry.mjs`**
+- [x] **Step 5: Add the combobox arrow to `entry.mjs`**
 
 A combo box is a button plus a popup, both already styled — the only unthemed part is its arrow. Append to the template literal in `tools/templates/gtk3/entry.mjs`, before the closing backtick, separated by a blank line:
 
@@ -922,7 +922,7 @@ Add one pair to its `contrastPairs` return array:
     },
 ```
 
-- [ ] **Step 6: Compose the two new modules**
+- [x] **Step 6: Compose the two new modules**
 
 In `tools/templates/gtk3.mjs`, add the imports next to the other widget imports:
 
@@ -939,12 +939,12 @@ and add them to `GTK3_MODULES` directly after `entry`:
   scale,
 ```
 
-- [ ] **Step 7: Run the tests**
+- [x] **Step 7: Run the tests**
 
 Run: `node --test tools/templates/gtk3.test.mjs tools/aa.test.mjs`
 Expected: PASS, including the registry test — if you created a module file and forgot the import, that test names the file.
 
-- [ ] **Step 8: Show a scale with marks in the gallery**
+- [x] **Step 8: Show a scale with marks in the gallery**
 
 In `tools/preview/gallery.py`, in `inputs_section()`, after the existing scale, add one with marks and a disabled one:
 
@@ -961,17 +961,17 @@ In `tools/preview/gallery.py`, in `inputs_section()`, after the existing scale, 
     box.pack_start(row(label("Marks:"), marked, disabled_scale), False, False, 0)
 ```
 
-- [ ] **Step 9: Regenerate, reinstall, re-capture**
+- [x] **Step 9: Regenerate, reinstall, re-capture**
 
 ```bash
 npm run generate && npm run check && ./install.sh --all && npm run preview:shots
 ```
 
-- [ ] **Step 10: Confirm the scale is drawn**
+- [x] **Step 10: Confirm the scale is drawn**
 
 Open `tools/preview/out/vivid-life-midnight-blue.png`. Both scales must show a trough with an accent-filled left portion and a light round knob. At the baseline the scale row showed only the text `60`.
 
-- [ ] **Step 11: Commit**
+- [x] **Step 11: Commit**
 
 ```bash
 git add tools/templates/gtk3.mjs tools/templates/gtk3/scale.mjs tools/templates/gtk3/spinbutton.mjs tools/templates/gtk3/entry.mjs tools/templates/gtk3.test.mjs tools/preview/gallery.py gtk-3.0/
@@ -1001,7 +1001,7 @@ accent because it overlaps the accent highlight for most of its travel."
 - Consumes: `ctx.radius`, `ctx.space`, `ctx.control.border`
 - Produces: a `view` module composed after `notebook`
 
-- [ ] **Step 1: Extend the selector test**
+- [x] **Step 1: Extend the selector test**
 
 Add to the selector array:
 
@@ -1011,12 +1011,12 @@ Add to the selector array:
     "list row",
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `node --test tools/templates/gtk3.test.mjs`
 Expected: FAIL — `expected CSS to style treeview`.
 
-- [ ] **Step 3: Write the module**
+- [x] **Step 3: Write the module**
 
 Create `tools/templates/gtk3/view.mjs`:
 
@@ -1113,16 +1113,16 @@ export function contrastPairs(ctx) {
 }
 ```
 
-- [ ] **Step 4: Compose it**
+- [x] **Step 4: Compose it**
 
 In `tools/templates/gtk3.mjs`, add `import * as view from "./gtk3/view.mjs";` and place `view` in `GTK3_MODULES` directly after `notebook`.
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 Run: `node --test tools/templates/gtk3.test.mjs tools/aa.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Add an icon view to the gallery**
+- [x] **Step 6: Add an icon view to the gallery**
 
 In `tools/preview/gallery.py`, in `lists_section()`, before `return frame`:
 
@@ -1137,17 +1137,17 @@ In `tools/preview/gallery.py`, in `lists_section()`, before `return frame`:
     box.pack_start(icons, False, False, 0)
 ```
 
-- [ ] **Step 7: Regenerate, reinstall, re-capture**
+- [x] **Step 7: Regenerate, reinstall, re-capture**
 
 ```bash
 npm run generate && npm run check && ./install.sh --all && npm run preview:shots
 ```
 
-- [ ] **Step 8: Confirm the headers went flat**
+- [x] **Step 8: Confirm the headers went flat**
 
 Open the Midnight capture. The `Theme` / `Targets` column headers must now read as a flat band with a hairline beneath — at the baseline they rendered as raised bordered buttons, because the header nodes were picking up the full `button` chrome.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add tools/templates/gtk3.mjs tools/templates/gtk3/view.mjs tools/templates/gtk3.test.mjs tools/preview/gallery.py gtk-3.0/
@@ -1177,7 +1177,7 @@ Closes the last baseline defect: `toolbar` and `menubar` paint no background, so
 - Consumes: `ctx.radius`, `ctx.space`, `ctx.control.border`; `composite` from `tools/lib/contrast.mjs`
 - Produces: no new modules
 
-- [ ] **Step 1: Extend the selector test**
+- [x] **Step 1: Extend the selector test**
 
 Add to the selector array:
 
@@ -1188,12 +1188,12 @@ Add to the selector array:
     "actionbar",
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `node --test tools/templates/gtk3.test.mjs`
 Expected: FAIL — `expected CSS to style menubar`.
 
-- [ ] **Step 3: Add menubar and popover to `menu.mjs`**
+- [x] **Step 3: Add menubar and popover to `menu.mjs`**
 
 Append to the template literal in `tools/templates/gtk3/menu.mjs`, before the closing backtick, each block separated by a blank line:
 
@@ -1249,7 +1249,7 @@ Add two pairs to `menu.mjs`'s `contrastPairs` return array:
     },
 ```
 
-- [ ] **Step 4: Add toolbar and actionbar to `header-bars.mjs`**
+- [x] **Step 4: Add toolbar and actionbar to `header-bars.mjs`**
 
 Replace `tools/templates/gtk3/header-bars.mjs` with:
 
@@ -1328,12 +1328,12 @@ export function contrastPairs(ctx) {
 }
 ```
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 Run: `node --test tools/templates/gtk3.test.mjs tools/aa.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Add a popover and an action bar to the gallery**
+- [x] **Step 6: Add a popover and an action bar to the gallery**
 
 A real popover is a separate toplevel window and would not appear in a window grab, so render it inline the way `menus_section()` already renders the dropdown. In `tools/preview/gallery.py`, in `menus_section()`, before `return frame`:
 
@@ -1360,13 +1360,13 @@ In `buttons_section()`, after the toolbar, add an action bar:
     box.pack_start(action, False, False, 0)
 ```
 
-- [ ] **Step 7: Regenerate, reinstall, re-capture**
+- [x] **Step 7: Regenerate, reinstall, re-capture**
 
 ```bash
 npm run generate && npm run check && ./install.sh --all && npm run preview:shots
 ```
 
-- [ ] **Step 8: Confirm the chrome bands separated**
+- [x] **Step 8: Confirm the chrome bands separated**
 
 ```bash
 P=tools/preview/out/vivid-life-midnight-blue.png
@@ -1375,7 +1375,7 @@ magick "$P" -format "%[pixel:p{100,533}]\n" info:
 
 Sample a pixel inside the toolbar band (adjust the y to wherever the toolbar landed after the gallery grew). Expected `srgb(64,64,64)` — `bg_soft` — where the baseline read `srgb(23,23,23)`, the window colour. Confirm visually that the menubar now reads as a band and its hovered item is an accent fill, not an underline.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add tools/templates/gtk3/menu.mjs tools/templates/gtk3/header-bars.mjs tools/templates/gtk3.test.mjs tools/preview/gallery.py gtk-3.0/
@@ -1404,7 +1404,7 @@ The `paned` handle is the case the separator policy in Task 3 carved out: it is 
 - Consumes: `ctx.radius`, `ctx.space`, `ctx.control.border`
 - Produces: `paned` and `sidebar` module namespace objects in `GTK3_MODULES`, composed after `view`
 
-- [ ] **Step 1: Extend the selector test**
+- [x] **Step 1: Extend the selector test**
 
 Add to the selector array:
 
@@ -1414,12 +1414,12 @@ Add to the selector array:
     ".linked",
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `node --test tools/templates/gtk3.test.mjs`
 Expected: FAIL — `expected CSS to style paned`.
 
-- [ ] **Step 3: Write the paned module**
+- [x] **Step 3: Write the paned module**
 
 Create `tools/templates/gtk3/paned.mjs`:
 
@@ -1463,7 +1463,7 @@ export function contrastPairs(ctx) {
 }
 ```
 
-- [ ] **Step 4: Write the sidebar module**
+- [x] **Step 4: Write the sidebar module**
 
 Create `tools/templates/gtk3/sidebar.mjs`:
 
@@ -1512,7 +1512,7 @@ export function contrastPairs(ctx) {
 }
 ```
 
-- [ ] **Step 5: Add `.linked` geometry to `button.mjs`**
+- [x] **Step 5: Add `.linked` geometry to `button.mjs`**
 
 Append to the template literal in `tools/templates/gtk3/button.mjs`, before the closing backtick:
 
@@ -1543,7 +1543,7 @@ Append to the template literal in `tools/templates/gtk3/button.mjs`, before the 
 
 `button.mjs` needs no new contrast pairs — `.linked` changes geometry only, and the colours are the ones `button label` and `button boundary` already gate.
 
-- [ ] **Step 6: Compose the two new modules**
+- [x] **Step 6: Compose the two new modules**
 
 In `tools/templates/gtk3.mjs`, add:
 
@@ -1554,12 +1554,12 @@ import * as sidebar from "./gtk3/sidebar.mjs";
 
 and place `paned,` and `sidebar,` in `GTK3_MODULES` directly after `view`.
 
-- [ ] **Step 7: Run the tests**
+- [x] **Step 7: Run the tests**
 
 Run: `node --test tools/templates/gtk3.test.mjs tools/aa.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 8: Add a paned and a sidebar to the gallery**
+- [x] **Step 8: Add a paned and a sidebar to the gallery**
 
 In `tools/preview/gallery.py`, add a new section function and register it in `SECTIONS` between `lists_section` and `menus_section`:
 
@@ -1605,17 +1605,17 @@ SECTIONS = (
 )
 ```
 
-- [ ] **Step 9: Regenerate, reinstall, re-capture**
+- [x] **Step 9: Regenerate, reinstall, re-capture**
 
 ```bash
 npm run generate && npm run check && ./install.sh --all && npm run preview:shots
 ```
 
-- [ ] **Step 10: Confirm the segmented control and the sidebar**
+- [x] **Step 10: Confirm the segmented control and the sidebar**
 
 Open the Midnight capture. The `Left | Middle | Right` row must now read as one segmented control — square interior corners, single shared edges — rather than three separate buttons. The stack sidebar must sit on `bg_soft` with a boundary against the stack pane, and the paned handle must be a visible hairline.
 
-- [ ] **Step 11: Commit**
+- [x] **Step 11: Commit**
 
 ```bash
 git add tools/templates/gtk3.mjs tools/templates/gtk3/paned.mjs tools/templates/gtk3/sidebar.mjs tools/templates/gtk3/button.mjs tools/templates/gtk3.test.mjs tools/preview/gallery.py gtk-3.0/
@@ -1643,7 +1643,7 @@ The last two nodes on the spec's unstyled list. Both are low-traffic in Xfce but
 - Consumes: `ctx.radius`, `ctx.space`, `ctx.control.border`
 - Produces: a `misc` module composed last before `selection`
 
-- [ ] **Step 1: Extend the selector test**
+- [x] **Step 1: Extend the selector test**
 
 Add to the selector array:
 
@@ -1652,12 +1652,12 @@ Add to the selector array:
     "expander",
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `node --test tools/templates/gtk3.test.mjs`
 Expected: FAIL — `expected CSS to style calendar`.
 
-- [ ] **Step 3: Write the module**
+- [x] **Step 3: Write the module**
 
 Create `tools/templates/gtk3/misc.mjs`:
 
@@ -1750,16 +1750,16 @@ export function contrastPairs(ctx) {
 }
 ```
 
-- [ ] **Step 4: Compose it**
+- [x] **Step 4: Compose it**
 
 In `tools/templates/gtk3.mjs`, add `import * as misc from "./gtk3/misc.mjs";` and place `misc,` in `GTK3_MODULES` immediately before `selection`.
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 Run: `node --test tools/templates/gtk3.test.mjs tools/aa.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Add a calendar and an expander to the gallery**
+- [x] **Step 6: Add a calendar and an expander to the gallery**
 
 In `tools/preview/gallery.py`, in `layout_section()` (added in Task 8), before `return frame`:
 
@@ -1777,17 +1777,17 @@ In `tools/preview/gallery.py`, in `layout_section()` (added in Task 8), before `
     box.pack_start(calendar, False, False, 0)
 ```
 
-- [ ] **Step 7: Regenerate, reinstall, re-capture**
+- [x] **Step 7: Regenerate, reinstall, re-capture**
 
 ```bash
 npm run generate && npm run check && ./install.sh --all && npm run preview:shots
 ```
 
-- [ ] **Step 8: Review the calendar**
+- [x] **Step 8: Review the calendar**
 
 Open the Midnight capture. The calendar must sit on the sunk surface with a boundary, the weekday header must read as secondary rather than as body text, and the selected day must be an accent fill. Confirm the expander's arrow is visible against the window.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add tools/templates/gtk3.mjs tools/templates/gtk3/misc.mjs tools/templates/gtk3.test.mjs tools/preview/gallery.py gtk-3.0/
@@ -1812,7 +1812,7 @@ Every prior task verified one module. This one verifies the whole, against the s
 - Consumes: every module from Tasks 3–9
 - Produces: no code
 
-- [ ] **Step 1: Confirm no node on the spec's list is still unstyled**
+- [x] **Step 1: Confirm no node on the spec's list is still unstyled**
 
 The spec names these as rendering with zero rules. `switch` was closed in phase 1; the rest belong to this plan. Check each is now matched by a rule:
 
@@ -1826,7 +1826,7 @@ done
 
 Expected: every node reports at least 1. A zero is a gap — find which task should have covered it and go back.
 
-- [ ] **Step 2: Run the widget-factory cross-check**
+- [x] **Step 2: Run the widget-factory cross-check**
 
 Run: `npm run preview:factory`
 
@@ -1834,13 +1834,13 @@ If it captured, open `tools/preview/out/factory-vivid-life-midnight-blue.png` an
 
 If it skipped because `gtk-3-examples` is not installed, write that down explicitly in the summary — "not performed, package absent" — rather than treating the spec's definition-of-done item 4 as satisfied.
 
-- [ ] **Step 3: Review all four contact sheets**
+- [x] **Step 3: Review all four contact sheets**
 
 Run: `npm run preview:shots`
 
 Open `tools/preview/out/contact-midnight.png`, `contact-twilight.png`, `contact-dawn.png` and `contact-noon.png`. Twilight and Dawn are the ones to look hardest at: Twilight has the narrowest surface ramp (`bg` `#404040` against `bg_soft` `#525252`), and Dawn is the light flavor where a boundary derived for dark flavors is most likely to look heavy.
 
-- [ ] **Step 4: Spot-check the real applications**
+- [x] **Step 4: Spot-check the real applications**
 
 The spec's definition of done item 5. With a Vivid Life theme selected, open each and confirm nothing renders unthemed:
 
@@ -1857,11 +1857,11 @@ Note anything that still looks wrong. A finding here becomes the next plan's inp
 Run: `npm test`
 Expected: all tests pass. This takes roughly 6 minutes; the xfwm4 rasterization dominates. Run it in the background and wait once — do not poll.
 
-- [ ] **Step 6: Record the outcome in the spec**
+- [x] **Step 6: Record the outcome in the spec**
 
 Add a line to the spec's Sequencing section marking step 3 complete, with the commit range. If Step 2 or Step 4 turned up anything, add it to the spec's "Known fixes" section so the next plan inherits it.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add docs/superpowers/specs/2026-09-05-gtk-widget-coverage-design.md docs/superpowers/plans/2026-09-06-gtk-coverage-phase2.md
