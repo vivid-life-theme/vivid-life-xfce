@@ -23,6 +23,12 @@ except (ImportError, ValueError):
     )
 
 
+# Popovers created by the sections, popped up by main() once the window is
+# mapped — a popover cannot be shown before its relative-to widget is on
+# screen, and an unshown one contributes nothing to the capture.
+POPOVERS = []
+
+
 def section(title):
     """A titled frame; every widget group in the gallery sits in one."""
     frame = Gtk.Frame(label=title)
@@ -57,6 +63,8 @@ def surfaces_section():
         pane.get_style_context().add_class(name)
         pane.pack_start(label(f"  .{name}"), False, False, 0)
         box.pack_start(pane, False, False, 0)
+    box.pack_start(Gtk.Separator(), False, False, 6)
+    box.pack_start(label("A horizontal separator sits above this line"), False, False, 0)
     return frame
 
 
@@ -106,6 +114,13 @@ def buttons_section():
     for icon in ("go-previous", "go-next", "view-refresh", "document-open"):
         toolbar.insert(Gtk.ToolButton(icon_name=icon), -1)
     box.pack_start(toolbar, False, False, 0)
+
+    action = Gtk.ActionBar()
+    action.pack_start(Gtk.Button(label="Cancel"))
+    apply_button = Gtk.Button(label="Apply")
+    apply_button.get_style_context().add_class("suggested-action")
+    action.pack_end(apply_button)
+    box.pack_start(action, False, False, 0)
     return frame
 
 
@@ -157,6 +172,17 @@ def inputs_section():
     scale.set_value(60)
     scale.set_size_request(220, -1)
     box.pack_start(row(label("Scale:"), scale), False, False, 0)
+
+    marked = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, 0, 100, 1)
+    marked.set_value(35)
+    marked.set_size_request(220, -1)
+    for position in (0, 50, 100):
+        marked.add_mark(position, Gtk.PositionType.BOTTOM, str(position))
+    disabled_scale = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, 0, 100, 1)
+    disabled_scale.set_value(80)
+    disabled_scale.set_size_request(160, -1)
+    disabled_scale.set_sensitive(False)
+    box.pack_start(row(label("Marks:"), marked, disabled_scale), False, False, 0)
     return frame
 
 
@@ -208,6 +234,51 @@ def lists_section():
         if index == 0:
             listbox.select_row(listbox.get_row_at_index(0))
     box.pack_start(listbox, False, False, 0)
+
+    icon_store = Gtk.ListStore(str)
+    for name in ("Documents", "Pictures", "Music", "Downloads"):
+        icon_store.append([name])
+    icons = Gtk.IconView(model=icon_store)
+    icons.set_text_column(0)
+    icons.set_item_width(90)
+    icons.set_size_request(-1, 90)
+    box.pack_start(icons, False, False, 0)
+    return frame
+
+
+def layout_section():
+    frame, box = section("Layout")
+
+    paned = Gtk.Paned(orientation=Gtk.Orientation.HORIZONTAL)
+    paned.set_size_request(-1, 110)
+    paned.set_position(150)
+
+    stack = Gtk.Stack()
+    for name, title in (("one", "First page"), ("two", "Second page")):
+        page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        page.set_border_width(8)
+        page.pack_start(label(f"Contents of the {title.lower()}"), False, False, 0)
+        stack.add_titled(page, name, title)
+
+    switcher = Gtk.StackSidebar()
+    switcher.set_stack(stack)
+    switcher.set_size_request(150, -1)
+
+    paned.pack1(switcher, False, False)
+    paned.pack2(stack, True, False)
+    box.pack_start(paned, False, False, 0)
+
+    expander = Gtk.Expander(label="An expander, expanded")
+    expander.set_expanded(True)
+    inner = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+    inner.set_border_width(6)
+    inner.pack_start(label("Revealed content"), False, False, 0)
+    expander.add(inner)
+    box.pack_start(expander, False, False, 0)
+
+    calendar = Gtk.Calendar()
+    calendar.set_halign(Gtk.Align.START)
+    box.pack_start(calendar, False, False, 0)
     return frame
 
 
@@ -239,6 +310,27 @@ def menus_section():
         inline.pack_start(item, False, False, 0)
     inline.set_halign(Gtk.Align.START)
     box.pack_start(inline, False, False, 0)
+
+    # A real Gtk.Popover, not a class-styled Box: `popover` is an element-name
+    # selector, and a Box carrying a "popover" style class matches .popover
+    # instead — it would never exercise the rule. GTK3 draws a popover inside
+    # its toplevel, so it does land in the window grab; POPOVERS collects them
+    # for main() to pop up once the window is on screen.
+    trigger = Gtk.MenuButton(label="Open a popover")
+    trigger.set_halign(Gtk.Align.START)
+    popover = Gtk.Popover()
+    popover.set_relative_to(trigger)
+    popover.set_position(Gtk.PositionType.RIGHT)
+    inner = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+    inner.set_border_width(8)
+    inner.pack_start(label("Popover heading"), False, False, 0)
+    inner.pack_start(Gtk.Separator(), False, False, 0)
+    inner.pack_start(label("Popover body text"), False, False, 0)
+    inner.show_all()
+    popover.add(inner)
+    trigger.set_popover(popover)
+    POPOVERS.append(popover)
+    box.pack_start(trigger, False, False, 0)
     return frame
 
 
@@ -251,14 +343,26 @@ def feedback_section():
     progress.set_text("62%")
     box.pack_start(progress, False, False, 0)
 
-    level = Gtk.LevelBar.new_for_interval(0, 100)
-    level.set_value(72)
-    box.pack_start(level, False, False, 0)
+    for value in (15, 50, 90):
+        level = Gtk.LevelBar.new_for_interval(0, 100)
+        level.set_value(value)
+        # row() packs without expand, so a level bar with no size request
+        # collapses to its minimum width and renders as a tick.
+        level.set_size_request(220, -1)
+        # GTK's built-in low/high offsets are absolute (0.25/0.75), so on a
+        # 0-100 interval every value lands above them and only block.filled
+        # is ever applied. Declaring offsets on this scale is what makes the
+        # semantic block rules reachable.
+        level.add_offset_value("low", 25)
+        level.add_offset_value("high", 75)
+        level.add_offset_value(Gtk.LEVEL_BAR_OFFSET_FULL, 100)
+        box.pack_start(row(label(f"Level ({value}):"), level), False, False, 0)
 
     for message_type, text in (
         (Gtk.MessageType.INFO, "Informational message"),
         (Gtk.MessageType.WARNING, "Warning message"),
         (Gtk.MessageType.ERROR, "Error message"),
+        (Gtk.MessageType.QUESTION, "Question message"),
     ):
         bar = Gtk.InfoBar()
         bar.set_message_type(message_type)
@@ -325,6 +429,7 @@ SECTIONS = (
     inputs_section,
     tabs_section,
     lists_section,
+    layout_section,
     menus_section,
     feedback_section,
     xfce_section,
@@ -403,6 +508,8 @@ def main():
     if args.screenshot:
         capture(window, args.screenshot)
     window.show_all()
+    for popover in POPOVERS:
+        popover.popup()
     Gtk.main()
 
 

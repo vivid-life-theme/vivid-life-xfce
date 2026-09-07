@@ -30,6 +30,36 @@ window,
   color: @vl_fg;
 }
 
+/* The content surface: text views, tree views and anything else that holds
+   a document rather than chrome. Matches entry, which sits on the same
+   sunk surface, so a text field and the view it filters read as one layer. */
+.view,
+textview,
+textview text {
+  background-color: @vl_bg_sunk;
+  color: @vl_fg;
+}
+
+/* GTK draws a frame's border on a dedicated `border` child node, so the
+   element selector alone paints nothing — this is why frames rendered with
+   no visible edge at all. .frame is the class form apps apply directly. */
+frame > border,
+.frame {
+  border: 1px solid @vl_control_border;
+  border-radius: 4px;
+}
+
+/* Decorative rules between sections. Deliberately border.default, not the
+   control boundary: a separator is not a user-interface component whose
+   state has to be identifiable, so WCAG 1.4.11 does not govern it, and the
+   control boundary reads as a hard divider where a hairline is wanted.
+   The exemption is recorded in contrastPairs rather than left implicit. */
+separator {
+  background-color: @vl_border;
+  min-width: 1px;
+  min-height: 1px;
+}
+
 button {
   background-color: @vl_bg_soft;
   color: @vl_fg;
@@ -63,6 +93,29 @@ button.destructive-action {
   color: @vl_accent_on;
 }
 
+/* A linked group is one control drawn as several: square the interior
+   corners and collapse the shared edges so three buttons read as a
+   segmented control rather than three adjacent controls. Uses the sibling
+   combinator rather than chained :not(), which GTK's CSS parser handles
+   less predictably. */
+.linked > button {
+  border-radius: 0;
+}
+
+.linked > button:first-child {
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+
+.linked > button:last-child {
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.linked > button + button {
+  border-left-width: 0;
+}
+
 entry {
   background-color: @vl_bg_sunk;
   color: @vl_fg;
@@ -73,6 +126,89 @@ entry {
 
 entry:focus {
   border-color: @vl_accent;
+}
+
+combobox arrow {
+  color: @vl_fg_muted;
+  min-width: 16px;
+  min-height: 16px;
+  -gtk-icon-source: -gtk-icontheme("pan-down-symbolic");
+}
+
+combobox button {
+  border-radius: 4px;
+}
+
+/* GTK3 draws a spin button as an entry with two button children. Styling
+   the outer node and neutralising the children keeps it reading as one
+   field rather than a text box wedged between two buttons. */
+spinbutton {
+  background-color: @vl_bg_sunk;
+  color: @vl_fg;
+  border: 1px solid @vl_control_border;
+  border-radius: 4px;
+}
+
+spinbutton entry {
+  background-color: transparent;
+  border: none;
+  padding: 4px 8px;
+}
+
+spinbutton button {
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  color: @vl_fg_muted;
+  padding: 0 8px;
+}
+
+spinbutton button:hover {
+  background-color: alpha(@vl_accent, 0.2);
+  color: @vl_fg;
+}
+
+spinbutton button:disabled {
+  color: @vl_fg_disabled;
+}
+
+/* A scale drew as bare text: GTK paints none of trough, highlight or
+   slider by default, so with no rules the widget is an empty allocation
+   with only its value label visible. */
+scale trough {
+  background-color: @vl_bg_sunk;
+  border: 1px solid @vl_control_border;
+  border-radius: 9999px;
+  min-height: 4px;
+  min-width: 4px;
+}
+
+scale highlight {
+  background-color: @vl_accent;
+  border-radius: 9999px;
+}
+
+/* The knob is the control boundary colour rather than the accent: it
+   overlaps the accent highlight for most of the scale's travel, and accent
+   on accent has no edge at all. */
+scale slider {
+  background-color: @vl_control_border;
+  border-radius: 9999px;
+  min-width: 16px;
+  min-height: 16px;
+  margin: -8px;
+}
+
+scale slider:hover {
+  background-color: @vl_accent;
+}
+
+scale:disabled slider {
+  background-color: @vl_fg_disabled;
+}
+
+scale marks label {
+  color: @vl_fg_muted;
 }
 
 check,
@@ -132,6 +268,138 @@ notebook > header tab:checked {
   border-bottom: 2px solid @vl_accent;
 }
 
+treeview.view,
+iconview {
+  background-color: @vl_bg_sunk;
+  color: @vl_fg;
+  border-radius: 4px;
+}
+
+/* GTK renders a tree view's column headers as button nodes, so without a
+   rule they inherit the full button chrome — a raised, bordered, rounded
+   control where a flat header belongs. */
+treeview.view header button {
+  background-color: @vl_bg_soft;
+  color: @vl_fg_muted;
+  border: none;
+  border-bottom: 1px solid @vl_control_border;
+  border-radius: 0;
+  padding: 4px 8px;
+}
+
+/* Promoted to fg, not left muted: fg_muted over the hover composite is
+   3.70:1, below the 4.5:1 text floor. */
+treeview.view header button:hover {
+  background-color: alpha(@vl_accent, 0.2);
+  color: @vl_fg;
+}
+
+/* treeview.view is (0,1,1) and *:selected is (0,1,0), so the surface rule
+   above outranks the global selection fill and a selected row would render
+   unhighlighted. Restate selection at this specificity rather than weakening
+   the surface rule — selection.mjs cannot reach here on its own. */
+treeview.view:selected,
+treeview.view:selected:focus,
+iconview:selected,
+iconview:selected:focus {
+  background-color: @vl_accent;
+  color: @vl_accent_on;
+}
+
+/* Needs an explicit icon source for the same reason expander arrow does:
+   the theme replaces Adwaita, which was supplying the glyph. */
+treeview.view expander {
+  color: @vl_fg_muted;
+  -gtk-icon-source: -gtk-icontheme("pan-end-symbolic");
+}
+
+treeview.view expander:checked {
+  -gtk-icon-source: -gtk-icontheme("pan-down-symbolic");
+}
+
+/* Rows stay transparent so the view's surface shows through and the
+   *:selected fill is the only thing that paints a row. */
+list,
+list row {
+  background-color: transparent;
+}
+
+list row {
+  padding: 4px 8px;
+}
+
+list row:hover {
+  background-color: alpha(@vl_accent, 0.2);
+  color: @vl_fg;
+}
+
+/* The control boundary, not border.default: a paned handle is draggable
+   and its position is meaningful, which makes it a user-interface component
+   under WCAG 1.4.11 rather than the decorative rule base.mjs styles.
+
+   background-image: none is load-bearing. GTK ships a default handle image
+   for this node, and it composites over background-color — measured, a
+   colour-only rule renders #cdc7c2 where #d4d4d4 was asked for. */
+paned > separator {
+  background-color: @vl_control_border;
+  background-image: none;
+  min-width: 1px;
+  min-height: 1px;
+}
+
+paned > separator:hover {
+  background-color: @vl_accent;
+  background-image: none;
+}
+
+.sidebar,
+placessidebar,
+stacksidebar {
+  color: @vl_fg;
+}
+
+.sidebar scrolledwindow,
+placessidebar scrolledwindow,
+stacksidebar scrolledwindow {
+  background-color: transparent;
+}
+
+.sidebar viewport,
+placessidebar viewport,
+stacksidebar viewport,
+.sidebar list,
+placessidebar list,
+stacksidebar list {
+  background-color: @vl_bg_soft;
+}
+
+.sidebar list,
+placessidebar list,
+stacksidebar list {
+  border-right: 1px solid @vl_control_border;
+}
+
+/* Rows stay transparent so the sidebar's surface shows through and
+   *:selected is the only thing that fills one. An accent stripe on the row
+   instead would be 2.76:1 against bg_soft on Midnight Red. */
+.sidebar row,
+placessidebar row,
+stacksidebar row {
+  background-color: transparent;
+  padding: 4px 12px;
+  border-radius: 4px;
+}
+
+/* The rule above is (0,1,1) and *:selected is (0,1,0), so clearing the row
+   background silently outranks the global selection fill. Restate it here
+   rather than weakening the rule — the same trap as treeview.view. */
+.sidebar row:selected,
+placessidebar row:selected,
+stacksidebar row:selected {
+  background-color: @vl_accent;
+  color: @vl_accent_on;
+}
+
 menu,
 .menu {
   background-color: @vl_bg_overlay;
@@ -150,10 +418,77 @@ menuitem:hover {
   background-color: alpha(@vl_accent, 0.2);
 }
 
+menubar {
+  background-color: @vl_bg_soft;
+  color: @vl_fg;
+  border-bottom: 1px solid @vl_control_border;
+}
+
+menubar > menuitem {
+  padding: 4px 12px;
+  border-radius: 0;
+}
+
+/* Fill plus accent_on rather than an accent underline: an accent mark on
+   bg_soft is 2.76:1 on Midnight Red, below the 3:1 non-text floor. */
+menubar > menuitem:hover {
+  background-color: @vl_accent;
+  color: @vl_accent_on;
+}
+
+/* A popover is a menu that is not a menu node — same surface, same
+   boundary, so a Whisker-style popup and a dropdown read as one family. */
+popover,
+popover.background {
+  background-color: @vl_bg_overlay;
+  color: @vl_fg;
+  border: 1px solid @vl_control_border;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+popover separator {
+  background-color: @vl_border;
+}
+
 headerbar {
   background-color: @vl_bg_soft;
   color: @vl_fg;
   border-bottom: 1px solid @vl_border;
+}
+
+/* A toolbar painted nothing, so it merged into the window and its buttons
+   floated on the canvas. Same surface as headerbar — they are the same
+   chrome band in different widgets. */
+toolbar,
+.toolbar {
+  background-color: @vl_bg_soft;
+  color: @vl_fg;
+  padding: 4px;
+  border-bottom: 1px solid @vl_control_border;
+}
+
+actionbar > revealer > box {
+  background-color: @vl_bg_soft;
+  color: @vl_fg;
+  padding: 8px;
+  border-top: 1px solid @vl_control_border;
+}
+
+/* Path bars and tool buttons are flat until touched: chrome buttons that
+   each drew a full border would turn a toolbar into a grid. */
+toolbar button,
+.toolbar button,
+button.flat {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+toolbar button:hover,
+.toolbar button:hover,
+button.flat:hover {
+  background-color: alpha(@vl_accent, 0.2);
+  border-color: @vl_control_border;
 }
 
 scrollbar {
@@ -183,10 +518,94 @@ progressbar > trough > progress {
   border-radius: 4px;
 }
 
+/* A levelbar drew nothing at all: GTK gives trough and block no default
+   paint, so with no rule the widget is an empty box the height of a line. */
+levelbar trough {
+  background-color: @vl_bg_sunk;
+  border: 1px solid @vl_control_border;
+  border-radius: 4px;
+  min-height: 8px;
+}
+
+levelbar block.filled {
+  background-color: @vl_accent;
+  border-radius: 4px;
+}
+
+/* GTK's built-in offsets: below "low" and at/above "high". Semantic rather
+   than accent, because a level crossing a threshold is the one piece of
+   information a level bar carries. */
+levelbar block.low {
+  background-color: @vl_warning;
+}
+
+levelbar block.high,
+levelbar block.full {
+  background-color: @vl_success;
+}
+
+levelbar block.empty {
+  background-color: transparent;
+}
+
+spinner {
+  color: @vl_accent;
+  min-width: 16px;
+  min-height: 16px;
+}
+
 tooltip {
   background-color: @vl_bg_overlay;
   color: @vl_fg;
   border: 1px solid @vl_control_border;
+}
+
+calendar {
+  background-color: @vl_bg_sunk;
+  color: @vl_fg;
+  border: 1px solid @vl_control_border;
+  border-radius: 4px;
+  padding: 4px;
+}
+
+/* Days outside the displayed month, and the weekday header row. Muted on
+   the sunk surface clears 5.52:1, so these stay legible while reading as
+   secondary. */
+calendar:indeterminate,
+calendar.header,
+calendar.highlight {
+  color: @vl_fg_muted;
+}
+
+calendar:selected {
+  background-color: @vl_accent;
+  color: @vl_accent_on;
+  border-radius: 4px;
+}
+
+expander title {
+  color: @vl_fg;
+  padding: 4px 0;
+}
+
+/* -gtk-icon-source is load-bearing. A GTK theme replaces Adwaita entirely
+   rather than extending it, and Adwaita is what supplies the arrow glyph
+   for this node — measured, a colour-only rule leaves the expander with an
+   indent and no arrow at all. GTK ships the pan-* symbolic icons in its own
+   gresource, so naming them adds no icon dependency. */
+expander arrow {
+  color: @vl_fg_muted;
+  min-width: 16px;
+  min-height: 16px;
+  -gtk-icon-source: -gtk-icontheme("pan-end-symbolic");
+}
+
+expander arrow:checked {
+  -gtk-icon-source: -gtk-icontheme("pan-down-symbolic");
+}
+
+expander title:hover arrow {
+  color: @vl_accent;
 }
 
 /* Text selection (entry/textview) only — the design system's state.selection
@@ -219,6 +638,41 @@ selection {
 *:selected .subtitle {
   color: @vl_accent_on;
   opacity: 1;
+}
+
+infobar {
+  background-color: @vl_bg_soft;
+  color: @vl_fg;
+  border: 1px solid @vl_control_border;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+infobar.info {
+  background-color: @vl_info;
+}
+
+infobar.warning {
+  background-color: @vl_warning;
+}
+
+infobar.error {
+  background-color: @vl_danger;
+}
+
+infobar.question {
+  background-color: @vl_accent;
+}
+
+infobar.info,
+infobar.info label,
+infobar.warning,
+infobar.warning label,
+infobar.error,
+infobar.error label,
+infobar.question,
+infobar.question label {
+  color: @vl_accent_on;
 }
 
 .warning {

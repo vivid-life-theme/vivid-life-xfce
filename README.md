@@ -76,6 +76,25 @@ git commit -m "chore: sync theme output with design-system <new-version>"
 
 Requires Node.js >=20 and `rsvg-convert` (`librsvg2-bin` / `librsvg2-tools` / `librsvg`) — maintainer-only; end users never need either.
 
+### Optional preview tooling
+
+`npm run preview` opens a gallery of every themed GTK3 widget in one window.
+`npm run preview:shots` renders it under all 24 themes and montages one
+contact sheet per flavor; `npm run preview:factory` does the same for
+`gtk3-widget-factory`, which is upstream's own widget checklist and so
+catches gaps in the gallery itself. Output lands in `tools/preview/out/`,
+which is gitignored.
+
+```sh
+sudo apt install xvfb imagemagick gtk-3-examples
+```
+
+All three scripts skip with a message when a tool is missing, so a fresh
+clone never fails on them. Two paths are hardcoded to the distribution
+build on purpose: `/usr/bin/python3`, because a Homebrew python3 earlier on
+`PATH` has no `gi` module, and `/usr/bin/import`, because a Homebrew
+ImageMagick is built without the X11 delegate and cannot grab a window.
+
 ## Repository layout
 
 ```text

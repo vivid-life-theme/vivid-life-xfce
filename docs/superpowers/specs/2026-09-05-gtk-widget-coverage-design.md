@@ -133,7 +133,18 @@ Separately, adjacent buttons need `margin` so they do not merge into one mass â€
 
 - **Whisker two-tone**: the popup-menu surface must cover every pane of a popup, or none. Resolved in `menu.mjs` by scoping the surface to the popup root rather than to menu-classed children.
 - **`*:selected label`**: the rule shipped in `ee09a97` sets `color` on _every_ label under a selected row, which also flattens `.warning`/`.error`/`.success` text inside selected rows. Narrow it to `.dim-label`/subtitle labels, or keep it broad and state the tradeoff explicitly in the comment. Either way it gains a test.
-- **Thunar toolbar icon sizes**: not yet attributed. The port has no `toolbar` rules and Thunar exposes no toolbar icon-size setting, so this may not be theme-caused. Confirm by switching to another theme before treating it as in scope.
+- **Thunar toolbar icon sizes**: no longer reproducing. Thunar captured under `vivid-life-midnight-blue` after the phase 2 sweep shows normal-size toolbar icons on a themed toolbar band. The port had no `toolbar` rules when the report was made; it does now. Re-open only if it recurs.
+
+## Lessons from the coverage sweep
+
+Four GTK behaviours cost real debugging time in phase 2 and will cost it again in the GTK4/GTK2 phase. Each was established by measurement, not documentation.
+
+- **A theme replaces Adwaita; it does not extend it.** Adwaita is what supplies `-gtk-icon-source` for arrow nodes, so `expander arrow`, `treeview expander` and `combobox arrow` render as an empty indent under our theme until the icon source is named explicitly. Setting `color` alone can never fix this â€” there is no glyph to tint. GTK ships the `pan-*` symbolic icons in its own gresource, so naming them adds no icon dependency.
+- **`*:selected` has zero specificity and loses to any new surface rule.** `treeview.view` (0,1,1) and `.sidebar row` (0,1,1) both silently outranked the global selection fill, unhighlighting every selected row. Any rule that paints or clears a background on a node that can be selected must restate selection at its own specificity.
+- **Some container nodes render no background of their own.** A sidebar's surface cannot be painted on `stacksidebar`/`placessidebar`: GTK nests a `scrolledwindow` and a `viewport` in between, and only those inner nodes paint. The surface goes on the viewport and the list, with the scrolledwindow cleared.
+- **`background-image` composites over `background-color`.** GTK ships a default handle image for `paned > separator`; a colour-only rule rendered `#cdc7c2` where `#d4d4d4` was asked for. `background-image: none` is required alongside the colour.
+
+Contact-sheet review after every module is what caught all four. Three of them produce output that looks plausible in isolation and is only wrong next to the widget it should match.
 
 ## Definition of done
 
@@ -147,7 +158,7 @@ Separately, adjacent buttons need `margin` so they do not merge into one mass â€
 
 1. **Safety net, no visual change.** Preview harness, module split, generalized contrast gate. The split is a pure refactor: generated output must be byte-identical, proven by `npm run check` before and after.
 2. **Known defects.** Whisker two-tone, control boundary and button margins, `switch`, narrowed `*:selected label`.
-3. **Coverage sweep.** Module by module through the unstyled-node list, contact sheet reviewed after each.
+3. **Coverage sweep.** Module by module through the unstyled-node list, contact sheet reviewed after each. **Done** â€” `a516a54..391d101`, planned in `docs/superpowers/plans/2026-09-06-gtk-coverage-phase2.md`. Every node listed above now has rules; verified against `gtk3-widget-factory` and spot-checked in Thunar, xfce4-terminal and the Appearance dialog.
 4. **GTK4, then GTK2.** Same module structure; GTK4 verified with the widget factory where libadwaita does not override, GTK2 spot-checked against a real GTK2 application.
 
 Phase 1 landing before any visual change is deliberate: it is what makes phases 2â€“4 verifiable, and it is the only phase whose correctness can be proven mechanically (byte-identical output).

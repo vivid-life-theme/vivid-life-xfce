@@ -12,7 +12,8 @@
     "generate": "node tools/generate.mjs",
     "check": "node tools/generate.mjs --check",
     "preview": "/usr/bin/python3 tools/preview/gallery.py",
-    "preview:shots": "sh tools/preview/shots.sh"
+    "preview:shots": "sh tools/preview/shots.sh",
+    "preview:factory": "sh tools/preview/factory.sh"
   },
   "dependencies": {
     "@vivid-life-theme/design-system": "0.8.0"

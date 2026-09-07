@@ -3,14 +3,20 @@ import * as tokens from "./gtk3/_tokens.mjs";
 import * as base from "./gtk3/base.mjs";
 import * as button from "./gtk3/button.mjs";
 import * as entry from "./gtk3/entry.mjs";
+import * as spinbutton from "./gtk3/spinbutton.mjs";
+import * as scale from "./gtk3/scale.mjs";
 import * as checkRadio from "./gtk3/check-radio.mjs";
 import * as switchWidget from "./gtk3/switch.mjs";
 import * as notebook from "./gtk3/notebook.mjs";
+import * as view from "./gtk3/view.mjs";
+import * as paned from "./gtk3/paned.mjs";
+import * as sidebar from "./gtk3/sidebar.mjs";
 import * as menu from "./gtk3/menu.mjs";
 import * as headerBars from "./gtk3/header-bars.mjs";
 import * as scrollbar from "./gtk3/scrollbar.mjs";
 import * as progress from "./gtk3/progress.mjs";
 import * as tooltip from "./gtk3/tooltip.mjs";
+import * as misc from "./gtk3/misc.mjs";
 import * as selection from "./gtk3/selection.mjs";
 import * as infobar from "./gtk3/infobar.mjs";
 
@@ -25,14 +31,20 @@ export const GTK3_MODULES = [
   base,
   button,
   entry,
+  spinbutton,
+  scale,
   checkRadio,
   switchWidget,
   notebook,
+  view,
+  paned,
+  sidebar,
   menu,
   headerBars,
   scrollbar,
   progress,
   tooltip,
+  misc,
   selection,
   infobar,
 ];
