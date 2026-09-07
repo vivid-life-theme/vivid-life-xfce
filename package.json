@@ -16,7 +16,7 @@
     "preview:factory": "sh tools/preview/factory.sh"
   },
   "dependencies": {
-    "@vivid-life-theme/design-system": "0.8.0"
+    "@vivid-life-theme/design-system": "0.9.0"
   },
   "license": "MIT"
 }
