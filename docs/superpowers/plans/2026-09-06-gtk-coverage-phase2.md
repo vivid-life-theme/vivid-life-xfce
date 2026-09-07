@@ -1852,10 +1852,12 @@ The spec's definition of done item 5. With a Vivid Life theme selected, open eac
 
 Note anything that still looks wrong. A finding here becomes the next plan's input, not a reason to keep patching this one.
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npm test`
 Expected: all tests pass. This takes roughly 6 minutes; the xfwm4 rasterization dominates. Run it in the background and wait once — do not poll.
+
+> Result: 117 tests, 117 pass, 0 fail (349s).
 
 - [x] **Step 6: Record the outcome in the spec**
 
