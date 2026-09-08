@@ -49,3 +49,21 @@ for theme in $themes; do
   "
   echo "wrote $png"
 done
+
+if command -v gtk4-widget-factory >/dev/null 2>&1; then
+  for theme in $themes; do
+    png="$out/factory4-$theme.png"
+    echo "capturing gtk4 factory under $theme"
+    xvfb-run -a --server-args="-screen 0 1280x1600x24" sh -c "
+      GTK_THEME=$theme gtk4-widget-factory &
+      factory_pid=\$!
+      sleep 4
+      $grab -window root '$png'
+      kill \$factory_pid 2>/dev/null || true
+    "
+    echo "wrote $png"
+  done
+else
+  echo "preview:factory — gtk4-widget-factory not installed, GTK4 pass skipped" >&2
+  echo "  (Debian/Ubuntu: sudo apt install gtk-4-examples)" >&2
+fi

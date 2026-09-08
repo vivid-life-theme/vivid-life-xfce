@@ -78,22 +78,13 @@ Requires Node.js >=20 and `rsvg-convert` (`librsvg2-bin` / `librsvg2-tools` / `l
 
 ### Optional preview tooling
 
-`npm run preview` opens a gallery of every themed GTK3 widget in one window.
-`npm run preview:shots` renders it under all 24 themes and montages one
-contact sheet per flavor; `npm run preview:factory` does the same for
-`gtk3-widget-factory`, which is upstream's own widget checklist and so
-catches gaps in the gallery itself. Output lands in `tools/preview/out/`,
-which is gitignored.
+`npm run preview:shots` and `npm run preview:factory` need `xvfb` and
+ImageMagick; the GTK3 factory cross-check additionally needs
+`gtk-3-examples`. `npm run preview:shots4` and the factory's GTK4 pass need
+the GTK4 GObject bindings and `gtk-4-examples`. Every script skips with a
+message when a tool is missing, so a fresh clone never fails on them.
 
-```sh
-sudo apt install xvfb imagemagick gtk-3-examples
-```
-
-All three scripts skip with a message when a tool is missing, so a fresh
-clone never fails on them. Two paths are hardcoded to the distribution
-build on purpose: `/usr/bin/python3`, because a Homebrew python3 earlier on
-`PATH` has no `gi` module, and `/usr/bin/import`, because a Homebrew
-ImageMagick is built without the X11 delegate and cannot grab a window.
+    sudo apt install xvfb imagemagick gtk-3-examples gir1.2-gtk-4.0 gtk-4-examples
 
 ## Repository layout
 
