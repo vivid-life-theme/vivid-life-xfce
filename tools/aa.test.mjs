@@ -9,6 +9,8 @@ import {
 } from "./lib/tokens.mjs";
 import { buildContext } from "./templates/context.mjs";
 import { GTK3_MODULES } from "./templates/gtk3.mjs";
+import { GTK4_MODULES } from "./templates/gtk4.mjs";
+import { GTK2_MODULES } from "./templates/gtk2.mjs";
 
 const AA = 4.5;
 // WCAG 1.4.3 governs text; non-text UI components (scrollbar sliders, focus
@@ -17,25 +19,55 @@ const AA = 4.5;
 // never get conflated in one assertion.
 const AA_NONTEXT = 3;
 
-// The GTK3 pairs are not listed here. Every gtk3 template module declares the
-// pairs it emits next to the CSS that emits them, and this walk collects them
-// — so a new widget module cannot ship colors the gate has never seen.
-function gtkPairsFor(flavor, variant) {
-  const ctx = buildContext(
+const REGISTRIES = {
+  gtk3: GTK3_MODULES,
+  gtk4: GTK4_MODULES,
+  gtk2: GTK2_MODULES,
+};
+
+function contextFor(flavor, variant) {
+  return buildContext(
     flavorBlock(flavor),
     resolveAccent(flavor, variant),
     accentOn(flavor),
   );
-  return GTK3_MODULES.flatMap((m) =>
-    m.contrastPairs ? m.contrastPairs(ctx) : [],
+}
+
+// Every template module declares the pairs it emits next to the CSS that
+// emits them, and this walk collects them across all three targets — so a
+// new widget module cannot ship colours the gate has never seen.
+//
+// Labels are prefixed with their target. gtk3/base.mjs and gtk4/base.mjs
+// both emit a pair called "window text"; without the prefix the exemption
+// map below would collapse two targets' claims into one key and stop
+// noticing when only one of them goes stale.
+function modulePairsFor(flavor, variant) {
+  const ctx = contextFor(flavor, variant);
+  return Object.entries(REGISTRIES).flatMap(([target, modules]) =>
+    modules.flatMap((m) =>
+      m.contrastPairs
+        ? m
+            .contrastPairs(ctx)
+            .map((p) => ({ ...p, label: `${target}: ${p.label}` }))
+        : [],
+    ),
   );
 }
 
-// gtk2.mjs, gtk4.mjs and xfwm4.mjs are not split into modules, so their pairs
-// stay an explicit list.
-function otherPairsFor(flavor, variant) {
+function registryPairCounts(flavor, variant) {
+  const ctx = contextFor(flavor, variant);
+  return Object.fromEntries(
+    Object.entries(REGISTRIES).map(([target, modules]) => [
+      target,
+      modules.flatMap((m) => (m.contrastPairs ? m.contrastPairs(ctx) : []))
+        .length,
+    ]),
+  );
+}
+
+// xfwm4.mjs is not split into modules, so its pairs stay an explicit list.
+function otherPairsFor(flavor) {
   const b = flavorBlock(flavor);
-  const accent = resolveAccent(flavor, variant);
   const sunk = b.surface.bg_sunk;
   const text = (label, fg, bg) => ({ label, fg, bg, rule: "text" });
 
@@ -63,20 +95,14 @@ function otherPairsFor(flavor, variant) {
       b.text.fg,
       composite(sunk, b.state.active),
     ),
-    // gtk2/gtk4 only — the gtk3 equivalents come from the module walk.
-    text("gtk2/gtk4 window text", b.text.fg, b.surface.bg),
-    text("gtk2/gtk4 button text", b.text.fg, b.surface.bg_soft),
-    text("gtk2/gtk4 entry text", b.text.fg, sunk),
-    text("gtk2/gtk4 button prelight", b.text.fg, b.border.default),
-    text("gtk2/gtk4 accent button text", accentOn(flavor), accent),
   ];
 }
 
 for (const { flavor, variant } of allCombinations()) {
   test(`WCAG — ${flavor} ${variant}`, () => {
     for (const pair of [
-      ...gtkPairsFor(flavor, variant),
-      ...otherPairsFor(flavor, variant),
+      ...modulePairsFor(flavor, variant),
+      ...otherPairsFor(flavor),
     ]) {
       if (pair.exempt) continue;
       const min = pair.rule === "nontext" ? AA_NONTEXT : AA;
@@ -99,7 +125,7 @@ for (const { flavor, variant } of allCombinations()) {
 test("every exemption is still needed", () => {
   const clears = new Map();
   for (const { flavor, variant } of allCombinations()) {
-    for (const pair of gtkPairsFor(flavor, variant)) {
+    for (const pair of modulePairsFor(flavor, variant)) {
       if (!pair.exempt) continue;
       const min = pair.rule === "nontext" ? AA_NONTEXT : AA;
       const stale = contrastRatio(pair.fg, pair.bg) >= min;
@@ -124,13 +150,23 @@ test("every exemption is still needed", () => {
 test("the module walk yields pairs for every flavor and variant", () => {
   for (const { flavor, variant } of allCombinations()) {
     assert.ok(
-      gtkPairsFor(flavor, variant).length >= 15,
+      modulePairsFor(flavor, variant).length >= 25,
       `${flavor} ${variant} yielded too few pairs`,
     );
   }
 });
 
 test("the module walk covers both WCAG criteria", () => {
-  const rules = new Set(gtkPairsFor("midnight", "blue").map((p) => p.rule));
+  const rules = new Set(modulePairsFor("midnight", "blue").map((p) => p.rule));
   assert.deepEqual([...rules].sort(), ["nontext", "text"]);
+});
+
+// A registry that lost its contrastPairs — or a target whose modules were
+// never wired into the walk — would make this file pass vacuously for that
+// target while it shipped ungated colours.
+test("every target registry contributes pairs", () => {
+  const counts = registryPairCounts("midnight", "blue");
+  assert.ok(counts.gtk3 >= 15, `gtk3 yielded ${counts.gtk3} pairs`);
+  assert.ok(counts.gtk4 >= 5, `gtk4 yielded ${counts.gtk4} pairs`);
+  assert.ok(counts.gtk2 >= 3, `gtk2 yielded ${counts.gtk2} pairs`);
 });
