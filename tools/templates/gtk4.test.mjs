@@ -1,6 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { renderGtk4Css } from "./gtk4.mjs";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { renderGtk4Css, GTK4_MODULES } from "./gtk4.mjs";
 import { flavorBlock, resolveAccent, accentOn } from "../lib/tokens.mjs";
 
 test("renderGtk4Css documents the libadwaita limitation", () => {
@@ -39,5 +42,36 @@ test("renderGtk4Css styles core widgets", () => {
     "progressbar",
   ]) {
     assert.ok(css.includes(selector), `expected CSS to style ${selector}`);
+  }
+});
+
+// A module file that exists but is never composed produces no CSS and no
+// error — exactly the silent gap the module split could otherwise introduce.
+test("every module file in gtk4/ is composed by the index", async () => {
+  const dir = fileURLToPath(new URL("./gtk4/", import.meta.url));
+  const files = fs
+    .readdirSync(dir)
+    .filter((f) => f.endsWith(".mjs") && !f.endsWith(".test.mjs"));
+  const composed = new Set(
+    await Promise.all(
+      GTK4_MODULES.map(async (m) => {
+        for (const f of files) {
+          if ((await import(path.join(dir, f))).render === m.render) return f;
+        }
+        return null;
+      }),
+    ),
+  );
+  for (const file of files) {
+    assert.ok(
+      composed.has(file),
+      `gtk4/${file} exists but is not in GTK4_MODULES`,
+    );
+  }
+});
+
+test("every composed gtk4 module exports a render function", () => {
+  for (const module of GTK4_MODULES) {
+    assert.equal(typeof module.render, "function");
   }
 });
