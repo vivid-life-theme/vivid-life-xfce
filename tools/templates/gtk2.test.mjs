@@ -1,6 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { renderGtk2Gtkrc } from "./gtk2.mjs";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { renderGtk2Gtkrc, GTK2_MODULES } from "./gtk2.mjs";
 import { flavorBlock, resolveAccent, accentOn } from "../lib/tokens.mjs";
 
 test("renderGtk2Gtkrc embeds surface and accent colors", () => {
@@ -25,4 +28,57 @@ test("renderGtk2Gtkrc declares the default widget class binding", () => {
   assert.match(gtkrc, /class "GtkWidget" style "vivid-life-default"/);
   assert.match(gtkrc, /class "GtkButton" style "vivid-life-button"/);
   assert.match(gtkrc, /class "GtkEntry" style "vivid-life-entry"/);
+});
+
+test("every module file in gtk2/ is composed by the index", async () => {
+  const dir = fileURLToPath(new URL("./gtk2/", import.meta.url));
+  const files = fs
+    .readdirSync(dir)
+    .filter((f) => f.endsWith(".mjs") && !f.endsWith(".test.mjs"));
+  const composed = new Set(
+    await Promise.all(
+      GTK2_MODULES.map(async (m) => {
+        for (const f of files) {
+          if ((await import(path.join(dir, f))).render === m.render) return f;
+        }
+        return null;
+      }),
+    ),
+  );
+  for (const file of files) {
+    assert.ok(
+      composed.has(file),
+      `gtk2/${file} exists but is not in GTK2_MODULES`,
+    );
+  }
+});
+
+// gtkrc is order-sensitive in a way CSS is not: a style referenced before it
+// is defined is a parse error GTK2 reports to stderr and then ignores, so the
+// theme silently loses that style. Asserting the order mechanically is
+// cheaper than noticing a missing style in a screenshot.
+test("every style is defined before the binding that references it", () => {
+  const gtkrc = renderGtk2Gtkrc(
+    flavorBlock("noon"),
+    resolveAccent("noon", "red"),
+    accentOn("noon"),
+  );
+  const defined = new Set();
+  for (const line of gtkrc.split("\n")) {
+    const declaration = line.match(/^style "([^"]+)"/);
+    if (declaration) {
+      defined.add(declaration[1]);
+      continue;
+    }
+    const binding = line.match(
+      /^(?:class|widget_class|widget) "[^"]+" style "([^"]+)"/,
+    );
+    if (binding) {
+      assert.ok(
+        defined.has(binding[1]),
+        `binding references style "${binding[1]}" before it is defined`,
+      );
+    }
+  }
+  assert.ok(defined.size >= 3, "no styles found — the composition lost them");
 });
