@@ -1,5 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { contrastRatio, composite } from "./lib/contrast.mjs";
 import {
   allCombinations,
@@ -11,6 +14,9 @@ import { buildContext } from "./templates/context.mjs";
 import { GTK3_MODULES } from "./templates/gtk3.mjs";
 import { GTK4_MODULES } from "./templates/gtk4.mjs";
 import { GTK2_MODULES } from "./templates/gtk2.mjs";
+import * as GTK3_TOKENS from "./templates/gtk3/_tokens.mjs";
+import * as GTK4_TOKENS from "./templates/gtk4/_tokens.mjs";
+import * as GTK2_TOKENS from "./templates/gtk2/_tokens.mjs";
 
 const AA = 4.5;
 // WCAG 1.4.3 governs text; non-text UI components (scrollbar sliders, focus
@@ -24,6 +30,39 @@ const REGISTRIES = {
   gtk4: GTK4_MODULES,
   gtk2: GTK2_MODULES,
 };
+
+// The _tokens.mjs module of each registry declares @define-color/gtk-color-
+// scheme names, not widget rules, so it has no contrastPairs export and is
+// the one legitimate exception below. Matched by namespace-object identity
+// (import * as ... is a singleton per module URL) rather than by counting or
+// a hardcoded index, since module order and count both change across tasks.
+const TOKENS_BY_TARGET = {
+  gtk3: GTK3_TOKENS,
+  gtk4: GTK4_TOKENS,
+  gtk2: GTK2_TOKENS,
+};
+
+// Directories backing each registry, for resolving a failing module back to
+// its file name in assertion messages.
+const DIR_BY_TARGET = {
+  gtk3: fileURLToPath(new URL("./templates/gtk3/", import.meta.url)),
+  gtk4: fileURLToPath(new URL("./templates/gtk4/", import.meta.url)),
+  gtk2: fileURLToPath(new URL("./templates/gtk2/", import.meta.url)),
+};
+
+// Resolves a module namespace object back to the file that defines it, by
+// matching `render` function identity against every file in its registry's
+// directory — the same technique gtk2/gtk3/gtk4's own test files already use
+// to tie a composed module back to its source file.
+async function fileNameFor(dir, module) {
+  const files = fs
+    .readdirSync(dir)
+    .filter((f) => f.endsWith(".mjs") && !f.endsWith(".test.mjs"));
+  for (const f of files) {
+    if ((await import(path.join(dir, f))).render === module.render) return f;
+  }
+  return "(unknown module)";
+}
 
 function contextFor(flavor, variant) {
   return buildContext(
@@ -169,4 +208,32 @@ test("every target registry contributes pairs", () => {
   assert.ok(counts.gtk3 >= 15, `gtk3 yielded ${counts.gtk3} pairs`);
   assert.ok(counts.gtk4 >= 5, `gtk4 yielded ${counts.gtk4} pairs`);
   assert.ok(counts.gtk2 >= 3, `gtk2 yielded ${counts.gtk2} pairs`);
+});
+
+// Count floors above catch a registry emptying out, but the realistic
+// regression is smaller than that: one module's contrastPairs export gets
+// renamed or broken and the registry total barely moves, since it is one
+// module's pairs missing out of dozens. This asserts per module instead, so
+// a widget module going dark fails the gate by name instead of shipping its
+// colours ungated. One combination is enough — which modules declare pairs
+// is structural, not combination-dependent.
+test("every widget module declares contrast pairs", async () => {
+  const ctx = contextFor("midnight", "blue");
+  for (const [target, modules] of Object.entries(REGISTRIES)) {
+    const tokensModule = TOKENS_BY_TARGET[target];
+    const dir = DIR_BY_TARGET[target];
+    for (const m of modules) {
+      if (m === tokensModule) continue; // _tokens.mjs declares no pairs
+      const name = await fileNameFor(dir, m);
+      assert.equal(
+        typeof m.contrastPairs,
+        "function",
+        `${target}/${name} does not export contrastPairs`,
+      );
+      assert.ok(
+        m.contrastPairs(ctx).length > 0,
+        `${target}/${name} contrastPairs() returned no pairs`,
+      );
+    }
+  }
 });
