@@ -1,3 +1,5 @@
+import { composite } from "../../lib/contrast.mjs";
+
 export function render(ctx) {
   return `/* GTK4 draws a spin button as a text node with two button siblings.
    Styling the outer node and neutralising the children keeps it reading as
@@ -59,6 +61,12 @@ export function contrastPairs(ctx) {
       bg: ctx.surface.bg_sunk,
       rule: "text",
       exempt: "WCAG 1.4.3 — text in an inactive user-interface component",
+    },
+    {
+      label: "spinbutton hover glyph",
+      fg: ctx.text.fg,
+      bg: composite(ctx.surface.bg_sunk, `${ctx.accent}33`),
+      rule: "text",
     },
   ];
 }

@@ -48,10 +48,34 @@ levelbar > trough > block.empty {
   background-color: transparent;
 }
 
+/* We replace GTK4's own stylesheet outright, so the spinner gets none of
+   its behaviour unless we supply all of it: the glyph comes from
+   -gtk-icon-source (there is no drawn fallback), visibility comes from the
+   opacity toggle below, and the spin comes from this @keyframes block plus
+   the animation declaration on :checked. Supplying only color/sizing (as
+   this module used to) paints nothing at all. */
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
 spinner {
   color: @vl_accent;
   min-width: ${ctx.space["4"]};
   min-height: ${ctx.space["4"]};
+  background: none;
+  opacity: 0;
+  -gtk-icon-source: -gtk-icontheme("process-working-symbolic");
+}
+
+spinner:checked {
+  opacity: 1;
+  animation: spin 1s linear infinite;
+}
+
+spinner:checked:disabled {
+  opacity: 0.5;
 }`;
 }
 
