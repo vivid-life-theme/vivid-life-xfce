@@ -25,7 +25,11 @@ actionbar > revealer > box {
 }
 
 /* Chrome buttons are flat until touched: each drawing a full border would
-   turn a toolbar into a grid. */
+   turn a toolbar into a grid. \`.toolbar button\` (descendant) is deliberately
+   broader than upstream's \`.toolbar > button\` (direct child) plus its
+   separate forms for wrapped controls — this single selector catches
+   wrapped buttons too, without enumerating them. Don't narrow it to match
+   upstream; that would silently drop coverage. */
 .toolbar button,
 button.flat {
   background-color: transparent;

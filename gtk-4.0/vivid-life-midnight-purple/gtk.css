@@ -138,7 +138,11 @@ actionbar > revealer > box {
 }
 
 /* Chrome buttons are flat until touched: each drawing a full border would
-   turn a toolbar into a grid. */
+   turn a toolbar into a grid. `.toolbar button` (descendant) is deliberately
+   broader than upstream's `.toolbar > button` (direct child) plus its
+   separate forms for wrapped controls — this single selector catches
+   wrapped buttons too, without enumerating them. Don't narrow it to match
+   upstream; that would silently drop coverage. */
 .toolbar button,
 button.flat {
   background-color: transparent;
@@ -178,7 +182,13 @@ popover.menu modelbutton {
 }
 
 /* Fill plus accent_on rather than an accent mark: an accent indicator on
-   bg_overlay is 2.76:1 on Midnight Red, below the 3:1 non-text floor. */
+   bg_overlay is 2.76:1 on Midnight Red, below the 3:1 non-text floor.
+   GTK4 drives menu-row highlight through `:selected`, set by the popover's
+   keyboard/pointer navigation controller, not native pointer-in prelight —
+   `:hover` never fires on this node in GTK4's own stylesheet. It is kept
+   here as a harmless no-op in case a future version or a non-GNOME popover
+   implementation uses prelight instead. */
+popover.menu modelbutton:selected,
 popover.menu modelbutton:hover {
   background-color: @vl_accent;
   color: @vl_accent_on;

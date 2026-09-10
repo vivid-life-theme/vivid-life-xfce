@@ -26,7 +26,13 @@ popover.menu modelbutton {
 }
 
 /* Fill plus accent_on rather than an accent mark: an accent indicator on
-   bg_overlay is 2.76:1 on Midnight Red, below the 3:1 non-text floor. */
+   bg_overlay is 2.76:1 on Midnight Red, below the 3:1 non-text floor.
+   GTK4 drives menu-row highlight through \`:selected\`, set by the popover's
+   keyboard/pointer navigation controller, not native pointer-in prelight —
+   \`:hover\` never fires on this node in GTK4's own stylesheet. It is kept
+   here as a harmless no-op in case a future version or a non-GNOME popover
+   implementation uses prelight instead. */
+popover.menu modelbutton:selected,
 popover.menu modelbutton:hover {
   background-color: @vl_accent;
   color: @vl_accent_on;
@@ -72,7 +78,7 @@ export function contrastPairs(ctx) {
       rule: "text",
     },
     {
-      label: "menu entry hover label",
+      label: "menu entry selected label",
       fg: ctx.accentOn,
       bg: ctx.accent,
       rule: "text",
