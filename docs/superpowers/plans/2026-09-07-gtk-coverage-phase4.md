@@ -3646,14 +3646,18 @@ Output is expected to change here; `check` is confirming the committed files mat
 
 A gtkrc syntax error is not a crash — GTK2 writes a warning to stderr and ignores the rest of the file, so a broken theme looks like an unthemed one rather than like an error. Make the parser tell you:
 
+**The probe must force GTK to initialize, or it proves nothing.** `pinentry-gtk-2 --version` prints and exits before `gtk_init()` ever runs, so the rc file is never parsed and the check passes on _any_ input, including a file with a dangling assignment. Verified: an injected `bg[NORMAL] =` syntax error produced no warning under `--version`, and none under a bare `BYE` either — pinentry initializes GTK lazily, only when it actually has to draw. Driving it to a real dialog with `GETPIN` is what makes the parser run.
+
 ```bash
-./install.sh --all
-GTK2_RC_FILES="$HOME/.themes/vivid-life-midnight-blue/gtk-2.0/gtkrc" \
-  xvfb-run -a pinentry-gtk-2 --version 2>&1 \
+printf 'SETDESC probe\nGETPIN\n' \
+  | timeout 25 env GTK2_RC_FILES="$PWD/gtk-2.0/vivid-life-midnight-blue/gtkrc" \
+      xvfb-run -a pinentry-gtk-2 2>&1 \
   | grep -iE 'parse|unable|error|warning' || echo "no parser warnings"
 ```
 
 Expected: `no parser warnings`. Any parse error names the offending line number — fix it before continuing, because everything after that line was discarded.
+
+Both directions of this probe are verified: against the committed gtkrc it prints `no parser warnings`; against a copy with an injected syntax error it prints `<file>:47: error: unexpected character '}', expected string constant`. No `./install.sh --all` is needed — pointing `GTK2_RC_FILES` at the generated file in the repo tests the same content without writing 24 themes into `~/.themes`.
 
 - [ ] **Step 13: Commit**
 
