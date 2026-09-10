@@ -16,6 +16,7 @@ treeview.view:selected,
 listview > row:selected,
 list > row:selected,
 .sidebar row:selected,
+.navigation-sidebar row:selected,
 placessidebar row:selected,
 stacksidebar row:selected,
 iconview:selected {
