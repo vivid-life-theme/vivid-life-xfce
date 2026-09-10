@@ -106,3 +106,30 @@ test("every composed gtk4 module exports a render function", () => {
     assert.equal(typeof module.render, "function");
   }
 });
+
+/* A surface rule like `.navigation-sidebar row { background-color: transparent }`
+   has specificity (0,1,1) and beats bare `:selected` (0,1,0), so a row that
+   paints its own background silently loses its selection highlight unless
+   selection.mjs restates the pair explicitly. That is the whole reason
+   selection.mjs exists, but nothing enforced it: `.navigation-sidebar` was added
+   to the sidebar module without its counterpart and shipped a sidebar whose
+   selected row rendered transparent. This gate makes that omission impossible
+   to repeat. */
+test("every sidebar row surface has a :selected restatement", () => {
+  const midnight = flavorBlock("midnight");
+  const css = renderGtk4Css(
+    midnight,
+    resolveAccent("midnight", "blue"),
+    accentOn("midnight"),
+  );
+  const rowSelectors = new Set(
+    [...css.matchAll(/^([A-Za-z.][\w.-]* row)[,{ ]/gm)].map((m) => m[1]),
+  );
+  assert.ok(rowSelectors.size > 0, "found no `X row` selectors to check");
+  for (const selector of rowSelectors) {
+    assert.ok(
+      css.includes(`${selector}:selected`),
+      `${selector} paints a row surface but ${selector}:selected is never restated — selected rows will render unhighlighted`,
+    );
+  }
+});
