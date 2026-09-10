@@ -2324,7 +2324,16 @@ levelbar > trough {
   min-height: ${ctx.space["2"]};
 }
 
-levelbar > trough > block.filled {
+/* The filled state is \`block:not(.empty)\`, NOT \`block.filled\` — there is no
+   .filled class in GTK4, nor in GTK3. Verified against GTK4's own
+   stylesheet, which uses \`block:not(.empty)\` for exactly this. (The GTK3
+   module in this repo carries the .filled mistake; recorded as a finding
+   for the next plan, out of scope here.)
+
+   This rule comes BEFORE .low/.high/.full deliberately: those are the same
+   specificity (0,1,1), so source order decides, and a block that is both
+   filled and high should read as high. */
+levelbar > trough > block:not(.empty) {
   background-color: @vl_accent;
   border-radius: ${ctx.radius.sm};
 }
