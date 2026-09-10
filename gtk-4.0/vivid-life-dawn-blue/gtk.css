@@ -70,9 +70,12 @@ separator {
 button {
   background-color: @vl_bg_soft;
   color: @vl_fg;
-  border: 1px solid @vl_border;
+  /* border.default is identical to bg_soft on Midnight (1.00:1), so the
+     derived control boundary is what gives a button an edge at all. */
+  border: 1px solid @vl_control_border;
   border-radius: 4px;
-  padding: 4px 10px;
+  padding: 4px 12px;
+  margin: 1px;
 }
 
 button:hover {
@@ -89,29 +92,251 @@ button:disabled {
   color: @vl_fg_disabled;
 }
 
-entry {
-  background-color: @vl_bg_sunk;
-  color: @vl_fg;
-  border: 1px solid @vl_border;
-  border-radius: 4px;
-  padding: 4px 6px;
-}
-
-entry:focus {
+button.suggested-action {
+  background-color: @vl_accent;
+  color: @vl_accent_on;
   border-color: @vl_accent;
 }
 
-check,
-radio {
-  background-color: @vl_bg_soft;
-  border: 1px solid @vl_border;
+button.destructive-action {
+  background-color: @vl_danger;
+  color: @vl_accent_on;
+  border-color: @vl_danger;
 }
 
+/* A linked group is one control drawn as several: square the interior
+   corners and collapse the shared edges so three buttons read as a
+   segmented control rather than three adjacent controls. */
+.linked > button {
+  border-radius: 0;
+  margin: 0;
+}
+
+.linked > button:first-child {
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+
+.linked > button:last-child {
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.linked > button + button {
+  border-left-width: 0;
+}
+
+entry {
+  background-color: @vl_bg_sunk;
+  color: @vl_fg;
+  border: 1px solid @vl_control_border;
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+/* GTK4 puts the editable text, caret and placeholder on a `text` child.
+   Without a rule here the field's own background paints over them on some
+   themes and the placeholder keeps GTK4's default opacity. */
+entry > text {
+  background-color: transparent;
+  color: @vl_fg;
+}
+
+entry > text > placeholder {
+  color: @vl_fg_muted;
+}
+
+/* GTK4 focuses the child, so the state lands on the parent as
+   :focus-within. `entry:focus` never matches and the ring never appears. */
+entry:focus-within {
+  border-color: @vl_accent;
+}
+
+entry:disabled {
+  color: @vl_fg_disabled;
+}
+
+/* GtkComboBox is deprecated in GTK4 and GtkDropDown is the replacement, so
+   both nodes are styled — an app using either is covered. */
+dropdown > button,
+combobox > button {
+  border-radius: 4px;
+}
+
+dropdown arrow,
+combobox arrow {
+  color: @vl_fg_muted;
+  min-width: 16px;
+  min-height: 16px;
+}
+
+/* GTK4 draws a spin button as a text node with two button siblings.
+   Styling the outer node and neutralising the children keeps it reading as
+   one field rather than a text box wedged between two buttons. */
+spinbutton {
+  background-color: @vl_bg_sunk;
+  color: @vl_fg;
+  border: 1px solid @vl_control_border;
+  border-radius: 4px;
+}
+
+spinbutton > text {
+  background-color: transparent;
+  color: @vl_fg;
+  padding: 4px 8px;
+}
+
+spinbutton > button {
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  color: @vl_fg_muted;
+  padding: 0 8px;
+}
+
+spinbutton > button:hover {
+  background-color: alpha(@vl_accent, 0.2);
+  color: @vl_fg;
+}
+
+spinbutton > button:disabled {
+  color: @vl_fg_disabled;
+}
+
+/* GTK4 nests the slider inside the trough — `scale > trough > slider`,
+   not `scale > slider`. A rule on the latter matches nothing and the knob
+   stays unpainted while the trough looks correct, which reads as a scale
+   that simply has no handle. */
+scale > trough {
+  background-color: @vl_bg_sunk;
+  border: 1px solid @vl_control_border;
+  border-radius: 9999px;
+  min-height: 4px;
+  min-width: 4px;
+}
+
+scale > trough > highlight {
+  background-color: @vl_accent;
+  border-radius: 9999px;
+}
+
+/* The knob is the control boundary colour rather than the accent: it
+   overlaps the accent highlight for most of the scale's travel, and accent
+   on accent has no edge at all. */
+scale > trough > slider {
+  background-color: @vl_control_border;
+  border-radius: 9999px;
+  min-width: 16px;
+  min-height: 16px;
+  margin: -8px;
+}
+
+scale > trough > slider:hover {
+  background-color: @vl_accent;
+}
+
+scale:disabled > trough > slider {
+  background-color: @vl_fg_disabled;
+}
+
+scale > marks label {
+  color: @vl_fg_muted;
+}
+
+switch {
+  background-color: @vl_bg_sunk;
+  border: 1px solid @vl_control_border;
+  border-radius: 9999px;
+  min-width: 40px;
+  min-height: 20px;
+}
+
+switch:checked {
+  background-color: @vl_accent;
+  border-color: @vl_accent;
+}
+
+/* The child combinator is what GTK4's own stylesheet uses. The GTK3
+   descendant form still matches, but `switch > slider` says exactly which
+   node is meant and cannot pick up a nested one. */
+switch > slider {
+  background-color: @vl_fg_muted;
+  border-radius: 50%;
+  min-width: 16px;
+  min-height: 16px;
+  margin: 1px;
+}
+
+switch:checked > slider {
+  background-color: @vl_accent_on;
+}
+
+switch:disabled {
+  color: @vl_fg_disabled;
+}
+
+/* GTK4 wraps both in a checkbutton; the indicator keeps the GTK3 node
+   names, so both the wrapped and bare forms are addressed. */
+checkbutton > check,
+checkbutton > radio,
+check,
+radio {
+  background-color: @vl_bg_sunk;
+  border: 1px solid @vl_control_border;
+  min-width: 14px;
+  min-height: 14px;
+}
+
+check {
+  border-radius: 4px;
+}
+
+radio {
+  border-radius: 50%;
+}
+
+checkbutton > check:checked,
+checkbutton > radio:checked,
 check:checked,
 radio:checked {
   background-color: @vl_accent;
   border-color: @vl_accent;
   color: @vl_accent_on;
+}
+
+/* A theme replaces GTK4's default stylesheet, which is what supplies the
+   tick and the dot, so without a rule here a checked indicator fills with
+   accent and shows no mark — the same defect phase 2 hit with expander
+   arrows. But the two cases cannot be solved the same way, and this is the
+   one place in the port where that matters:
+
+   GTK4's default sources both glyphs from theme-relative assets
+   (url("assets/check-symbolic.symbolic.png") and bullet-symbolic). Those
+   live under theme/Default/assets/ in GTK's gresource, NOT under icons/,
+   so they are private to that theme and -gtk-icontheme() cannot reach
+   them. Our theme ships no assets and must not start (see the repo's "do
+   not bundle icons" rule), so a url() reference is not available either.
+
+   The tick has a standard icon-theme equivalent: object-select-symbolic is
+   in GTK's own icons/scalable/actions, so naming it adds no dependency.
+   The dot has none — there is no bullet or circle glyph in the icon theme
+   at all — so the radio draws its dot in CSS instead: an accent fill with
+   an inset ring of the surface colour, leaving an accent core. */
+checkbutton > check:checked,
+check:checked {
+  -gtk-icon-source: -gtk-icontheme("object-select-symbolic");
+}
+
+checkbutton > radio:checked,
+radio:checked {
+  -gtk-icon-source: none;
+  box-shadow: inset 0 0 0 3px @vl_bg_sunk;
+}
+
+checkbutton:disabled,
+check:disabled,
+radio:disabled {
+  color: @vl_fg_disabled;
 }
 
 headerbar {
@@ -245,6 +470,51 @@ progressbar > trough {
 progressbar > trough > progress {
   background-color: @vl_accent;
   border-radius: 4px;
+}
+
+/* GTK4 nests block inside trough. GTK gives neither any default paint, so
+   with no rule a level bar is an empty box the height of a line. */
+levelbar > trough {
+  background-color: @vl_bg_sunk;
+  border: 1px solid @vl_control_border;
+  border-radius: 4px;
+  min-height: 8px;
+}
+
+/* The filled state is `block:not(.empty)`, NOT `block.filled` — there is no
+   .filled class in GTK4, nor in GTK3. Verified against GTK4's own
+   stylesheet, which uses `block:not(.empty)` for exactly this. (The GTK3
+   module in this repo carries the .filled mistake; recorded as a finding
+   for the next plan, out of scope here.)
+
+   This rule comes BEFORE .low/.high/.full deliberately: those are the same
+   specificity (0,1,1), so source order decides, and a block that is both
+   filled and high should read as high. */
+levelbar > trough > block:not(.empty) {
+  background-color: @vl_accent;
+  border-radius: 4px;
+}
+
+/* GTK's built-in offsets: below "low" and at/above "high". Semantic rather
+   than accent, because a level crossing a threshold is the one piece of
+   information a level bar carries. */
+levelbar > trough > block.low {
+  background-color: @vl_warning;
+}
+
+levelbar > trough > block.high,
+levelbar > trough > block.full {
+  background-color: @vl_success;
+}
+
+levelbar > trough > block.empty {
+  background-color: transparent;
+}
+
+spinner {
+  color: @vl_accent;
+  min-width: 16px;
+  min-height: 16px;
 }
 
 /* The fill goes on tooltip.background, not on tooltip. GTK4's own

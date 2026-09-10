@@ -3,6 +3,9 @@ import * as tokens from "./gtk4/_tokens.mjs";
 import * as base from "./gtk4/base.mjs";
 import * as button from "./gtk4/button.mjs";
 import * as entry from "./gtk4/entry.mjs";
+import * as spinbutton from "./gtk4/spinbutton.mjs";
+import * as scale from "./gtk4/scale.mjs";
+import * as switchWidget from "./gtk4/switch.mjs";
 import * as checkRadio from "./gtk4/check-radio.mjs";
 import * as headerBars from "./gtk4/header-bars.mjs";
 import * as scrollbar from "./gtk4/scrollbar.mjs";
@@ -18,6 +21,9 @@ export const GTK4_MODULES = [
   base,
   button,
   entry,
+  spinbutton,
+  scale,
+  switchWidget,
   checkRadio,
   headerBars,
   menu,

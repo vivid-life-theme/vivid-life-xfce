@@ -54,6 +54,13 @@ test("renderGtk4Css styles core widgets", () => {
     // the base rule those depend on for its surface had been dropped.
     "menubar > item {",
     "popover > contents,",
+    "switch > slider",
+    "scale > trough > slider",
+    "spinbutton > text",
+    "levelbar",
+    "spinner",
+    "dropdown",
+    ".linked",
   ]) {
     assert.ok(css.includes(selector), `expected CSS to style ${selector}`);
   }
