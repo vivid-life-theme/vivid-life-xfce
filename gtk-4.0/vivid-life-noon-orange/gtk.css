@@ -339,45 +339,175 @@ radio:disabled {
   color: @vl_fg_disabled;
 }
 
-headerbar {
+notebook > header {
   background-color: @vl_bg_soft;
-  color: @vl_fg;
-  border-bottom: 1px solid @vl_border;
-}
-
-/* GtkToolbar was removed in GTK4. What remains is the .toolbar style class
-   apps put on a plain box — there is no `toolbar` element to match, which
-   is why the GTK3 rule cannot simply be copied across. */
-.toolbar {
-  background-color: @vl_bg_soft;
-  color: @vl_fg;
-  padding: 4px;
-  border-bottom: 1px solid @vl_control_border;
-}
-
-actionbar > revealer > box {
-  background-color: @vl_bg_soft;
-  color: @vl_fg;
-  padding: 8px;
-  border-top: 1px solid @vl_control_border;
-}
-
-/* Chrome buttons are flat until touched: each drawing a full border would
-   turn a toolbar into a grid. `.toolbar button` (descendant) is deliberately
-   broader than upstream's `.toolbar > button` (direct child) plus its
-   separate forms for wrapped controls — this single selector catches
-   wrapped buttons too, without enumerating them. Don't narrow it to match
-   upstream; that would silently drop coverage. */
-.toolbar button,
-button.flat {
-  background-color: transparent;
-  border-color: transparent;
-}
-
-.toolbar button:hover,
-button.flat:hover {
-  background-color: alpha(@vl_accent, 0.2);
   border-color: @vl_control_border;
+}
+
+notebook > header > tabs > tab {
+  color: @vl_fg_muted;
+  padding: 4px 12px;
+  border-radius: 0;
+}
+
+/* This is the one accent mark in the port that sits on a chrome band, and
+   it does not contradict the "no accent mark on bg_soft or bg_overlay"
+   constraint — it is legal precisely BECAUSE the same rule repaints the
+   checked tab to bg_sunk. The underline is drawn against that sunk
+   surface, not against the bg_soft the header carries, and accent on
+   bg_sunk clears 3:1 (3.49:1 at worst, noon orange).
+
+   Do not "fix" this back to a plain fill without also removing the
+   background-color line: drop the repaint and the underline lands on
+   bg_soft at 2.76:1 on Midnight Red, and the constraint is then real. */
+notebook > header > tabs > tab:checked {
+  background-color: @vl_bg_sunk;
+  color: @vl_fg;
+  box-shadow: inset 0 -3px @vl_accent;
+}
+
+notebook > header > tabs > tab:hover:not(:checked) {
+  color: @vl_fg;
+}
+
+notebook > stack {
+  background-color: @vl_bg_sunk;
+}
+
+/* columnview and listview are GTK4's modern list widgets; treeview is
+   deprecated but still present in 4.14 and still rendered by ported apps. */
+columnview.view,
+treeview.view,
+listview,
+iconview {
+  background-color: @vl_bg_sunk;
+  color: @vl_fg;
+  border-radius: 4px;
+}
+
+/* Column headers are button nodes, so without a rule they inherit the full
+   raised-button chrome where a flat header belongs. */
+columnview.view header button,
+treeview.view header button {
+  background-color: @vl_bg_soft;
+  color: @vl_fg_muted;
+  border: none;
+  border-bottom: 1px solid @vl_control_border;
+  border-radius: 0;
+  margin: 0;
+  padding: 4px 8px;
+}
+
+/* Promoted to fg, not left muted: fg_muted over the hover composite is
+   3.70:1, below the 4.5:1 text floor. */
+columnview.view header button:hover,
+treeview.view header button:hover {
+  background-color: alpha(@vl_accent, 0.2);
+  color: @vl_fg;
+}
+
+/* A theme replaces GTK4's default stylesheet, and that default is what
+   supplies -gtk-icon-source for arrow nodes. Without naming the icon these
+   render as an empty indent, and setting color alone cannot fix it —
+   there is no glyph to tint. GTK ships pan-* in its own gresource. */
+columnview.view.expander,
+treeview.view.expander,
+treeexpander > expander {
+  -gtk-icon-source: -gtk-icontheme("pan-end-symbolic");
+  color: @vl_fg_muted;
+  min-width: 16px;
+  min-height: 16px;
+}
+
+columnview.view.expander:checked,
+treeview.view.expander:checked,
+treeexpander > expander:checked {
+  -gtk-icon-source: -gtk-icontheme("pan-down-symbolic");
+}
+
+/* Rows stay transparent so the view's surface shows through and the
+   selection fill is the only thing that paints a row. */
+list,
+list > row,
+listview > row {
+  background-color: transparent;
+}
+
+list > row,
+listview > row {
+  padding: 4px 8px;
+}
+
+list > row:hover,
+listview > row:hover {
+  background-color: alpha(@vl_accent, 0.2);
+  color: @vl_fg;
+}
+
+/* The control boundary, not border.default: a paned handle is draggable
+   and its position is meaningful, which makes it a user-interface component
+   under WCAG 1.4.11 rather than the decorative rule base.mjs styles.
+   background-image: none is required, not optional — GTK4's default sets a
+   handle image on this node, and an image composites over a colour, so a
+   colour-only rule renders GTK4's grey instead of the token asked for. */
+paned > separator {
+  background-image: none;
+  background-color: @vl_control_border;
+  min-width: 1px;
+  min-height: 1px;
+}
+
+paned > separator:hover {
+  background-image: none;
+  background-color: @vl_accent;
+}
+
+/* `.navigation-sidebar` is GTK4-only — 22 rules in GTK4's own sheet, zero
+   in GTK3 — and it is the class modern GTK4/libadwaita apps actually put on
+   sidebar rows. Without it the most visible widget in a modern GTK4 app falls
+   back to unstyled rows. Upstream writes `> row`; the descendant forms below
+   are a superset, so they match that and any wrapped variant. */
+.sidebar,
+.navigation-sidebar,
+placessidebar,
+stacksidebar {
+  background-color: @vl_bg_soft;
+  color: @vl_fg;
+  border-right: 1px solid @vl_control_border;
+}
+
+/* Phase 2's lesson, and it holds in GTK4: some container nodes render no
+   background of their own. A sidebar nests a scrolledwindow and a viewport,
+   and only the inner nodes paint, so the surface goes on those and the
+   scrolledwindow is cleared. */
+.sidebar scrolledwindow,
+.navigation-sidebar scrolledwindow,
+placessidebar scrolledwindow,
+stacksidebar scrolledwindow {
+  background-color: transparent;
+}
+
+.sidebar viewport,
+.sidebar list,
+.navigation-sidebar viewport,
+.navigation-sidebar list,
+placessidebar viewport,
+placessidebar list,
+stacksidebar viewport,
+stacksidebar list {
+  background-color: @vl_bg_soft;
+}
+
+/* Rows stay transparent so the sidebar's own surface shows through and
+   selection is the only thing that fills a row. An accent stripe on the row
+   instead would be 2.76:1 against bg_soft on Midnight Red. */
+.sidebar row,
+.navigation-sidebar row,
+placessidebar row,
+stacksidebar row {
+  background-color: transparent;
+  padding: 4px 12px;
+  border-radius: 4px;
 }
 
 /* GTK4 removed GtkMenu entirely: a menu is a popover carrying .menu and
@@ -447,6 +577,47 @@ menubar > item:hover {
 
 menubar > item:disabled {
   color: @vl_fg_disabled;
+}
+
+headerbar {
+  background-color: @vl_bg_soft;
+  color: @vl_fg;
+  border-bottom: 1px solid @vl_border;
+}
+
+/* GtkToolbar was removed in GTK4. What remains is the .toolbar style class
+   apps put on a plain box — there is no `toolbar` element to match, which
+   is why the GTK3 rule cannot simply be copied across. */
+.toolbar {
+  background-color: @vl_bg_soft;
+  color: @vl_fg;
+  padding: 4px;
+  border-bottom: 1px solid @vl_control_border;
+}
+
+actionbar > revealer > box {
+  background-color: @vl_bg_soft;
+  color: @vl_fg;
+  padding: 8px;
+  border-top: 1px solid @vl_control_border;
+}
+
+/* Chrome buttons are flat until touched: each drawing a full border would
+   turn a toolbar into a grid. `.toolbar button` (descendant) is deliberately
+   broader than upstream's `.toolbar > button` (direct child) plus its
+   separate forms for wrapped controls — this single selector catches
+   wrapped buttons too, without enumerating them. Don't narrow it to match
+   upstream; that would silently drop coverage. */
+.toolbar button,
+button.flat {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+.toolbar button:hover,
+button.flat:hover {
+  background-color: alpha(@vl_accent, 0.2);
+  border-color: @vl_control_border;
 }
 
 scrollbar slider {
@@ -556,4 +727,88 @@ tooltip.background {
 
 tooltip > box {
   padding: 4px;
+}
+
+calendar {
+  background-color: @vl_bg_sunk;
+  color: @vl_fg;
+  border: 1px solid @vl_control_border;
+  border-radius: 4px;
+}
+
+calendar > header {
+  border-bottom: 1px solid @vl_control_border;
+}
+
+calendar > grid > label {
+  padding: 4px;
+}
+
+calendar > grid > label.other-month,
+calendar > grid > label.day-name {
+  color: @vl_fg_muted;
+}
+
+calendar > grid > label:selected {
+  background-color: @vl_accent;
+  color: @vl_accent_on;
+  border-radius: 4px;
+}
+
+/* GTK4 renamed the widget node to expander-widget and gave the arrow the
+   name `expander` — exactly inverted from GTK3, where the widget is
+   `expander` and the arrow is `arrow`. Using the GTK3 form here tints the
+   arrow and loses the widget rule entirely. */
+expander-widget title {
+  color: @vl_fg;
+  padding: 4px 0;
+}
+
+expander-widget expander {
+  -gtk-icon-source: -gtk-icontheme("pan-end-symbolic");
+  color: @vl_fg_muted;
+  min-width: 16px;
+  min-height: 16px;
+}
+
+expander-widget expander:checked {
+  -gtk-icon-source: -gtk-icontheme("pan-down-symbolic");
+}
+
+expander-widget title:hover expander {
+  color: @vl_accent;
+}
+
+/* Composed last, and every widget it must beat is named explicitly.
+   `:selected` alone uses no element or class selector, so it contributes
+   zero specificity and loses to any rule that paints a background on a node
+   that can be selected — columnview.view and .sidebar row are both (0,1,1)
+   and would silently unhighlight every selected row. Source order does not
+   rescue it; matching their specificity does. */
+:selected,
+selection {
+  background-color: @vl_accent;
+  color: @vl_accent_on;
+}
+
+columnview.view:selected,
+treeview.view:selected,
+listview > row:selected,
+list > row:selected,
+.sidebar row:selected,
+placessidebar row:selected,
+stacksidebar row:selected,
+iconview:selected {
+  background-color: @vl_accent;
+  color: @vl_accent_on;
+}
+
+/* Deliberately narrow. The broad form — every label under a selected row —
+   also flattens .warning/.error/.success text inside that row, which is the
+   defect the GTK3 port carried until phase 2. Only the dimmed secondary
+   labels need promoting, because they are the ones that would otherwise
+   stay muted against an accent fill. */
+:selected .dim-label,
+:selected .subtitle {
+  color: @vl_accent_on;
 }

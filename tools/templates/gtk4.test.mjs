@@ -61,6 +61,16 @@ test("renderGtk4Css styles core widgets", () => {
     "spinner",
     "dropdown",
     ".linked",
+    "columnview",
+    "listview",
+    "treeexpander",
+    "paned > separator",
+    ".sidebar",
+    ".navigation-sidebar",
+    "notebook > header",
+    "calendar",
+    "expander-widget",
+    ":selected",
   ]) {
     assert.ok(css.includes(selector), `expected CSS to style ${selector}`);
   }

@@ -12,10 +12,19 @@ import * as scrollbar from "./gtk4/scrollbar.mjs";
 import * as progress from "./gtk4/progress.mjs";
 import * as tooltip from "./gtk4/tooltip.mjs";
 import * as menu from "./gtk4/menu.mjs";
+import * as notebook from "./gtk4/notebook.mjs";
+import * as view from "./gtk4/view.mjs";
+import * as paned from "./gtk4/paned.mjs";
+import * as sidebar from "./gtk4/sidebar.mjs";
+import * as misc from "./gtk4/misc.mjs";
+import * as selection from "./gtk4/selection.mjs";
 
 // Cascade order is part of the contract, same as gtk3.mjs: _tokens first so
 // the @define-color names exist before any rule references them, then base
-// so per-widget rules override it.
+// so per-widget rules override it. selection is composed last: :selected
+// contributes zero specificity of its own, so every surface rule this task
+// adds must be beaten by name, and only source order after them guarantees
+// that (see selection.mjs).
 export const GTK4_MODULES = [
   tokens,
   base,
@@ -25,11 +34,17 @@ export const GTK4_MODULES = [
   scale,
   switchWidget,
   checkRadio,
-  headerBars,
+  notebook,
+  view,
+  paned,
+  sidebar,
   menu,
+  headerBars,
   scrollbar,
   progress,
   tooltip,
+  misc,
+  selection,
 ];
 
 // GTK4's own default stylesheet is the node-name reference for this target;
