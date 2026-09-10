@@ -114,7 +114,14 @@ test("every composed gtk4 module exports a render function", () => {
    selection.mjs exists, but nothing enforced it: `.navigation-sidebar` was added
    to the sidebar module without its counterpart and shipped a sidebar whose
    selected row rendered transparent. This gate makes that omission impossible
-   to repeat. */
+   to repeat.
+
+   Scope, deliberately: this matches the bare-descendant form (`X row`), not
+   combinator forms like `listview > row`. That is not an oversight — only a
+   class-bearing selector can outrank `:selected`. `.sidebar row` is (0,1,1)
+   and wins; `listview > row` is (0,0,2), which loses to `:selected`'s (0,1,0)
+   on the class column and therefore needs no restatement. If a combinator form
+   ever gains a class (`.foo > row`), widen the pattern to match it. */
 test("every sidebar row surface has a :selected restatement", () => {
   const midnight = flavorBlock("midnight");
   const css = renderGtk4Css(
