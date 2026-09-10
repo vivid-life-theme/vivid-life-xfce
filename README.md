@@ -86,6 +86,11 @@ message when a tool is missing, so a fresh clone never fails on them.
 
     sudo apt install xvfb imagemagick gtk-3-examples gir1.2-gtk-4.0 gtk-4-examples
 
+Two paths are hardcoded to the distribution build on purpose: `/usr/bin/python3`,
+because a Homebrew python3 earlier on `PATH` has no `gi` module, and
+`/usr/bin/import`, because a Homebrew ImageMagick is built without the X11
+delegate and cannot grab a window.
+
 ## Repository layout
 
 ```text

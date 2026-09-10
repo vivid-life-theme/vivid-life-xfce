@@ -19,12 +19,21 @@ if ! command -v xvfb-run >/dev/null 2>&1; then
 fi
 if command -v magick >/dev/null 2>&1; then
   montage_cmd="magick montage"
-  import_cmd="magick import"
 elif command -v montage >/dev/null 2>&1; then
   montage_cmd="montage"
-  import_cmd="import"
 else
   echo "preview:shots4 — skipped: ImageMagick not installed." >&2
+  exit 0
+fi
+# /usr/bin/import explicitly, for the same reason factory.sh hardcodes it:
+# the Homebrew ImageMagick earlier on PATH is built without the X11
+# delegate, so its import(1) cannot grab a window and fails with a usage
+# message. Only the distribution build can screenshot. The montage above
+# needs no X11, so it can stay on whatever ImageMagick PATH resolves.
+grab=/usr/bin/import
+if [ ! -x "$grab" ]; then
+  echo "preview:shots4 — skipped: $grab not found." >&2
+  echo "  (Debian/Ubuntu: sudo apt install imagemagick)" >&2
   exit 0
 fi
 
@@ -55,14 +64,23 @@ for flavor in $flavors; do
     fi
     png="$out/gtk4-$theme.png"
     echo "capturing gtk4 $theme"
-    xvfb-run -a --server-args="-screen 0 900x1280x24" sh -c "
+    # The gallery holds its window open on a timeout; the subshell exits
+    # with the grab's own status, so a failed capture is not masked by the
+    # background gallery process being reaped afterward.
+    if xvfb-run -a --server-args="-screen 0 900x1280x24" sh -c "
       GTK_THEME=$theme /usr/bin/python3 '$here/gallery4.py' --theme '$theme' --screenshot '$png' &
       gallery_pid=\$!
       sleep 4
-      $import_cmd -window root '$png'
+      $grab -window root '$png'
+      grab_status=\$?
       wait \$gallery_pid 2>/dev/null || true
-    "
-    sheet_inputs="$sheet_inputs $png"
+      exit \$grab_status
+    " && [ -s "$png" ]; then
+      sheet_inputs="$sheet_inputs $png"
+    else
+      echo "preview:shots4 — capture failed for $theme; excluded from contact sheet." >&2
+      rm -f "$png"
+    fi
   done
 
   [ -n "$sheet_inputs" ] || continue
