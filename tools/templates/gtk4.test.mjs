@@ -40,6 +40,20 @@ test("renderGtk4Css styles core widgets", () => {
     "headerbar",
     "scrollbar",
     "progressbar",
+    "frame",
+    "separator",
+    ".view",
+    "tooltip.background",
+    "modelbutton",
+    ".toolbar",
+    "actionbar",
+    // These two carry their trailing brace on purpose. `menubar > item` is a
+    // substring of `menubar > item:selected` and `menubar > item:disabled`,
+    // and `popover > contents` of the `.background` variant, so the bare
+    // strings would pass with only the pseudo-class rules present — while
+    // the base rule those depend on for its surface had been dropped.
+    "menubar > item {",
+    "popover > contents,",
   ]) {
     assert.ok(css.includes(selector), `expected CSS to style ${selector}`);
   }

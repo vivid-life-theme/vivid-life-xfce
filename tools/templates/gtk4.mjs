@@ -8,6 +8,7 @@ import * as headerBars from "./gtk4/header-bars.mjs";
 import * as scrollbar from "./gtk4/scrollbar.mjs";
 import * as progress from "./gtk4/progress.mjs";
 import * as tooltip from "./gtk4/tooltip.mjs";
+import * as menu from "./gtk4/menu.mjs";
 
 // Cascade order is part of the contract, same as gtk3.mjs: _tokens first so
 // the @define-color names exist before any rule references them, then base
@@ -19,6 +20,7 @@ export const GTK4_MODULES = [
   entry,
   checkRadio,
   headerBars,
+  menu,
   scrollbar,
   progress,
   tooltip,

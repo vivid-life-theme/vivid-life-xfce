@@ -18,6 +18,7 @@
 @define-color vl_border #a3a3a3;
 @define-color vl_border_subtle #bdbdbd;
 @define-color vl_border_strong #404040;
+@define-color vl_control_border #404040;
 @define-color vl_accent #7c2d12;
 @define-color vl_accent_on #f5f5f5;
 @define-color vl_success #365314;
@@ -25,10 +26,45 @@
 @define-color vl_danger #7f1d1d;
 @define-color vl_info #1e3a8a;
 
+* {
+  outline-color: alpha(@vl_accent, 0.5);
+}
+
 window,
 .background {
   background-color: @vl_bg;
   color: @vl_fg;
+}
+
+/* The content surface. GTK4 puts a text view's editable area on a `text`
+   child, so `textview` alone paints the wrong node — the GTK3 form
+   (`textview text`) happens to still match, but the child form is what
+   GTK4's own stylesheet uses and is unambiguous. */
+.view,
+iconview,
+textview > text {
+  background-color: @vl_bg_sunk;
+  color: @vl_fg;
+}
+
+/* GTK4 draws a frame's border on the frame node itself. GTK3 needed
+   `frame > border`; that child node does not exist here, so the GTK3 rule
+   would match nothing and frames would draw no edge at all. */
+frame,
+.frame {
+  border: 1px solid @vl_control_border;
+  border-radius: 4px;
+}
+
+/* Decorative rules between sections. border.default rather than the control
+   boundary, for the reason phase 2 established: a separator is not a
+   user-interface component whose state has to be identifiable, so WCAG
+   1.4.11 does not govern it. The exemption is recorded below rather than
+   left implicit. */
+separator {
+  background-color: @vl_border;
+  min-width: 1px;
+  min-height: 1px;
 }
 
 button {
@@ -84,6 +120,100 @@ headerbar {
   border-bottom: 1px solid @vl_border;
 }
 
+/* GtkToolbar was removed in GTK4. What remains is the .toolbar style class
+   apps put on a plain box — there is no `toolbar` element to match, which
+   is why the GTK3 rule cannot simply be copied across. */
+.toolbar {
+  background-color: @vl_bg_soft;
+  color: @vl_fg;
+  padding: 4px;
+  border-bottom: 1px solid @vl_control_border;
+}
+
+actionbar > revealer > box {
+  background-color: @vl_bg_soft;
+  color: @vl_fg;
+  padding: 8px;
+  border-top: 1px solid @vl_control_border;
+}
+
+/* Chrome buttons are flat until touched: each drawing a full border would
+   turn a toolbar into a grid. */
+.toolbar button,
+button.flat {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+.toolbar button:hover,
+button.flat:hover {
+  background-color: alpha(@vl_accent, 0.2);
+  border-color: @vl_control_border;
+}
+
+/* GTK4 removed GtkMenu entirely: a menu is a popover carrying .menu and
+   its entries are modelbutton nodes, so the GTK3 `menu`/`menuitem`
+   selectors match nothing here. The fill goes on `> contents` — the
+   popover node itself carries the shadow and is not the visible surface. */
+popover > contents,
+popover.background > contents {
+  background-color: @vl_bg_overlay;
+  color: @vl_fg;
+  border: 1px solid @vl_control_border;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+/* The arrow is a sibling of contents, not a child, so it needs the surface
+   named again or the pointer renders in GTK4's default colour. */
+popover > arrow,
+popover.background > arrow {
+  background-color: @vl_bg_overlay;
+  border: 1px solid @vl_control_border;
+}
+
+popover.menu modelbutton {
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+/* Fill plus accent_on rather than an accent mark: an accent indicator on
+   bg_overlay is 2.76:1 on Midnight Red, below the 3:1 non-text floor. */
+popover.menu modelbutton:hover {
+  background-color: @vl_accent;
+  color: @vl_accent_on;
+}
+
+popover.menu modelbutton:disabled {
+  color: @vl_fg_disabled;
+}
+
+popover separator {
+  background-color: @vl_border;
+}
+
+/* GTK4 names a menubar's children `item`, not `menuitem`. */
+menubar {
+  background-color: @vl_bg_soft;
+  color: @vl_fg;
+  border-bottom: 1px solid @vl_control_border;
+}
+
+menubar > item {
+  padding: 4px 12px;
+  border-radius: 0;
+}
+
+menubar > item:selected,
+menubar > item:hover {
+  background-color: @vl_accent;
+  color: @vl_accent_on;
+}
+
+menubar > item:disabled {
+  color: @vl_fg_disabled;
+}
+
 scrollbar slider {
   /* border.strong fails WCAG 1.4.11 (3:1, non-text UI) against surface.bg
      on Twilight (1.909:1) — text.fg_subtle clears 3:1 on all four flavors. */
@@ -107,8 +237,19 @@ progressbar > trough > progress {
   border-radius: 4px;
 }
 
-tooltip {
+/* The fill goes on tooltip.background, not on tooltip. GTK4's own
+   stylesheet puts only padding and radius on the bare node and the fill on
+   the .background form, so a rule on `tooltip` alone loses to it on
+   specificity and never lands. Both are set here so a tooltip without the
+   class is still themed. */
+tooltip,
+tooltip.background {
   background-color: @vl_bg_overlay;
   color: @vl_fg;
-  border: 1px solid @vl_border;
+  border: 1px solid @vl_control_border;
+  border-radius: 8px;
+}
+
+tooltip > box {
+  padding: 4px;
 }
