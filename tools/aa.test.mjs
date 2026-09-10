@@ -11,8 +11,8 @@ import {
   accentOn,
 } from "./lib/tokens.mjs";
 import { buildContext } from "./templates/context.mjs";
-import { GTK3_MODULES } from "./templates/gtk3.mjs";
-import { GTK4_MODULES } from "./templates/gtk4.mjs";
+import { GTK3_MODULES, renderGtk3Css } from "./templates/gtk3.mjs";
+import { GTK4_MODULES, renderGtk4Css } from "./templates/gtk4.mjs";
 import { GTK2_MODULES } from "./templates/gtk2.mjs";
 import * as GTK3_TOKENS from "./templates/gtk3/_tokens.mjs";
 import * as GTK4_TOKENS from "./templates/gtk4/_tokens.mjs";
@@ -234,6 +234,42 @@ test("every widget module declares contrast pairs", async () => {
         m.contrastPairs(ctx).length > 0,
         `${target}/${name} contrastPairs() returned no pairs`,
       );
+    }
+  }
+});
+
+// GTK3 and GTK4 both name colours with @define-color and reference them as
+// @vl_*; an undefined name is dropped silently by the GTK CSS parser — the
+// rule referencing it simply vanishes, with no error and nothing for the
+// WCAG walk above to catch, since that walk checks hex values declared in
+// contrastPairs, not whether the CSS the module emits actually resolves.
+// GTK2 uses gtkrc, not @define-color, so it has no such mechanism and is
+// left out. One combination is enough — which names are defined vs
+// referenced is structural, not colour-dependent.
+//
+// `@define-color vl_bg #171717;` defines `vl_bg` with no leading `@` on the
+// name itself — only `@define-color` carries one — so a plain `@(vl_\w+)`
+// scan for references never mistakes a definition line for a reference.
+const DEFINE_RE = /@define-color\s+(vl_\w+)/g;
+const REFERENCE_RE = /@(vl_\w+)/g;
+
+function undefinedNames(css) {
+  const defined = new Set([...css.matchAll(DEFINE_RE)].map((m) => m[1]));
+  const referenced = new Set([...css.matchAll(REFERENCE_RE)].map((m) => m[1]));
+  return [...referenced].filter((name) => !defined.has(name));
+}
+
+test("every @vl_* name referenced in gtk3/gtk4 CSS is defined", () => {
+  const b = flavorBlock("midnight");
+  const accent = resolveAccent("midnight", "blue");
+  const on = accentOn("midnight");
+  const renderers = {
+    gtk3: renderGtk3Css(b, accent, on),
+    gtk4: renderGtk4Css(b, accent, on),
+  };
+  for (const [target, css] of Object.entries(renderers)) {
+    for (const name of undefinedNames(css)) {
+      assert.fail(`${target} references @${name} which is never defined`);
     }
   }
 });
