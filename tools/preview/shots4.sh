@@ -82,7 +82,16 @@ for flavor in $flavors; do
 		# looks like evidence.
 		installed="$HOME/.themes/$theme/gtk-4.0/gtk.css"
 		generated="$here/../../gtk-4.0/$theme/gtk.css"
-		if [ -f "$installed" ] && [ -f "$generated" ] && ! cmp -s "$installed" "$generated"; then
+		# See factory.sh: with either side missing the comparison below would
+		# silently skip rather than fail. The installed side can legitimately be
+		# absent here — the loop already skipped uninstalled themes above — but
+		# a missing generated file means the tree is broken.
+		if [ ! -f "$generated" ]; then
+			echo "preview:shots4 — ABORT: $generated does not exist." >&2
+			echo "  Nothing to compare the install against. Run: npm run generate" >&2
+			exit 1
+		fi
+		if [ -f "$installed" ] && ! cmp -s "$installed" "$generated"; then
 			echo "preview:shots4 — ABORT: $theme is installed stale." >&2
 			echo "  installed: $installed" >&2
 			echo "  generated: $generated" >&2

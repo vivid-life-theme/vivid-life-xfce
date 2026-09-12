@@ -76,7 +76,14 @@ for flavor in $flavors; do
 		# evidence. GTK2 selects by file rather than by name, so this also
 		# documents which file is actually being rendered.
 		generated="$here/../../gtk-2.0/$theme/gtkrc"
-		if [ -f "$generated" ] && ! cmp -s "$rc" "$generated"; then
+		# See factory.sh: a missing generated file would silently skip the
+		# comparison rather than fail it.
+		if [ ! -f "$generated" ]; then
+			echo "preview:shots2 — ABORT: $generated does not exist." >&2
+			echo "  Nothing to compare the install against. Run: npm run generate" >&2
+			exit 1
+		fi
+		if ! cmp -s "$rc" "$generated"; then
 			echo "preview:shots2 — ABORT: $theme is installed stale." >&2
 			echo "  installed: $rc" >&2
 			echo "  generated: $generated" >&2

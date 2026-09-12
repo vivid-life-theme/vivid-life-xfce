@@ -78,7 +78,15 @@ for theme in $themes; do
 			echo "  Run: npm run generate && ./install.sh --all" >&2
 			exit 1
 		fi
-		if [ -f "$generated" ] && ! cmp -s "$installed" "$generated"; then
+		# A missing generated file would make the comparison below no-op, which
+		# is the same can't-fire shape as the guards this phase already had to
+		# repair. Unreachable while the output is committed; cheap to close.
+		if [ ! -f "$generated" ]; then
+			echo "preview:factory — ABORT: $generated does not exist." >&2
+			echo "  Nothing to compare the install against. Run: npm run generate" >&2
+			exit 1
+		fi
+		if ! cmp -s "$installed" "$generated"; then
 			echo "preview:factory — ABORT: $theme/$target is installed stale." >&2
 			echo "  installed: $installed" >&2
 			echo "  generated: $generated" >&2
