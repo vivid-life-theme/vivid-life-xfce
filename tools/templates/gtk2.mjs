@@ -3,6 +3,10 @@ import * as tokens from "./gtk2/_tokens.mjs";
 import * as base from "./gtk2/base.mjs";
 import * as button from "./gtk2/button.mjs";
 import * as entry from "./gtk2/entry.mjs";
+import * as menu from "./gtk2/menu.mjs";
+import * as view from "./gtk2/view.mjs";
+import * as chrome from "./gtk2/chrome.mjs";
+import * as tooltip from "./gtk2/tooltip.mjs";
 
 // Cascade order is part of the contract, but it means something different
 // here than in CSS. gtkrc requires a style to be defined before it is bound,
@@ -12,7 +16,16 @@ import * as entry from "./gtk2/entry.mjs";
 // match regardless of position. _tokens first because gtk-color-scheme has
 // to be set before any style references its names; base second because
 // GtkWidget is the fallback every later binding narrows.
-export const GTK2_MODULES = [tokens, base, button, entry];
+export const GTK2_MODULES = [
+  tokens,
+  base,
+  button,
+  entry,
+  menu,
+  view,
+  chrome,
+  tooltip,
+];
 
 export function renderGtk2Gtkrc(flavorBlock, accentHex, accentOnHex) {
   const ctx = buildContext(flavorBlock, accentHex, accentOnHex);

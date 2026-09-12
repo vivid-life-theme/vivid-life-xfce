@@ -82,3 +82,55 @@ test("every style is defined before the binding that references it", () => {
   }
   assert.ok(defined.size >= 3, "no styles found — the composition lost them");
 });
+
+test("renderGtk2Gtkrc binds the widget classes Xfce renders", () => {
+  const gtkrc = renderGtk2Gtkrc(
+    flavorBlock("midnight"),
+    resolveAccent("midnight", "blue"),
+    accentOn("midnight"),
+  );
+  for (const binding of [
+    'class "GtkWidget"',
+    'class "GtkButton"',
+    'class "GtkEntry"',
+    'class "GtkMenu"',
+    'class "GtkMenuBar"',
+    'class "GtkNotebook"',
+    'class "GtkProgressBar"',
+    'class "GtkTextView"',
+    'class "GtkScrolledWindow"',
+    'class "GtkFrame"',
+    'widget_class "*<GtkMenuItem>*"',
+    'widget_class "*<GtkTreeView>*<GtkButton>*"',
+    'widget_class "*<GtkToolbar>*<GtkButton>"',
+    'widget "gtk-tooltip*"',
+  ]) {
+    assert.ok(gtkrc.includes(binding), `expected gtkrc to bind ${binding}`);
+  }
+});
+
+// GTK2's default drawing code and many applications read these keys
+// directly, so they are the highest-coverage part of a GTK2 colour theme.
+test("renderGtk2Gtkrc sets the full colour scheme", () => {
+  const gtkrc = renderGtk2Gtkrc(
+    flavorBlock("midnight"),
+    resolveAccent("midnight", "blue"),
+    accentOn("midnight"),
+  );
+  for (const key of [
+    "bg_color",
+    "fg_color",
+    "base_color",
+    "text_color",
+    "selected_bg_color",
+    "selected_fg_color",
+    "insensitive_bg_color",
+    "insensitive_fg_color",
+    "menu_color",
+    "tooltip_bg_color",
+    "tooltip_fg_color",
+    "link_color",
+  ]) {
+    assert.ok(gtkrc.includes(`${key}:`), `expected colour scheme key ${key}`);
+  }
+});
