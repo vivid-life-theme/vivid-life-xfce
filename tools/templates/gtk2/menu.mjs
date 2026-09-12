@@ -32,8 +32,14 @@ widget_class "*<GtkMenuItem>*" style "vivid-life-menuitem"
 # narrows the rule above rather than racing it.
 widget_class "*<GtkMenuBar>.<GtkMenuItem>*" style "vivid-life-menuitem"
 
+# control_border, not border.default: on Midnight the latter is #404040 and
+# so is the menu surface (bg_overlay), so the separator divided nothing at
+# all — 1.00:1. The WCAG exemption below is still right, because a separator
+# is not a component whose state must be identifiable, but an exemption from
+# 3:1 is not a licence to be invisible. control_border is derived to clear
+# 3:1 against the surfaces and measures 3.10:1 here at worst.
 style "vivid-life-menu-separator" {
-  bg[NORMAL] = "${ctx.border.default}"
+  bg[NORMAL] = "${ctx.control.border}"
 }
 
 widget_class "*<GtkSeparatorMenuItem>*" style "vivid-life-menu-separator"`;
@@ -60,12 +66,14 @@ export function contrastPairs(ctx) {
       rule: "text",
     },
     {
+      // No exemption any more. It used to carry one because border.default
+      // is the menu surface itself on Midnight (1.00:1); control_border
+      // clears 3:1 on all 24, and `every exemption is still needed` fails if
+      // a stale exemption is left behind — which is how this was caught.
       label: "menu separator",
-      fg: ctx.border.default,
+      fg: ctx.control.border,
       bg: ctx.surface.bg_overlay,
       rule: "nontext",
-      exempt:
-        "WCAG 1.4.11 — decorative separator, not a UI component whose state must be identifiable",
     },
   ];
 }
