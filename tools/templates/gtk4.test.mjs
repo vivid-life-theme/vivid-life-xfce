@@ -116,12 +116,15 @@ test("every composed gtk4 module exports a render function", () => {
    selected row rendered transparent. This gate makes that omission impossible
    to repeat.
 
-   Scope, deliberately: this matches the bare-descendant form (`X row`), not
-   combinator forms like `listview > row`. That is not an oversight — only a
-   class-bearing selector can outrank `:selected`. `.sidebar row` is (0,1,1)
-   and wins; `listview > row` is (0,0,2), which loses to `:selected`'s (0,1,0)
-   on the class column and therefore needs no restatement. If a combinator form
-   ever gains a class (`.foo > row`), widen the pattern to match it. */
+   Scope, deliberately: this matches only a CLASS-bearing descendant form
+   (`.foo row`). Only a class can outrank `:selected`. `.sidebar row` is (0,1,1)
+   and wins, so it needs the restatement. `placessidebar row` is (0,0,2) — two
+   type selectors, no class — and loses to `:selected`'s (0,1,0) on the class
+   column, exactly as `listview > row` does; neither needs restating, and
+   demanding it would assert a requirement specificity does not impose.
+   (selection.mjs does list the two bare-type sidebar forms anyway; harmless,
+   just not load-bearing.) If a combinator form ever gains a class
+   (`.foo > row`), widen the pattern to match it. */
 test("every sidebar row surface has a :selected restatement", () => {
   const midnight = flavorBlock("midnight");
   const css = renderGtk4Css(
@@ -130,7 +133,7 @@ test("every sidebar row surface has a :selected restatement", () => {
     accentOn("midnight"),
   );
   const rowSelectors = new Set(
-    [...css.matchAll(/^([A-Za-z.][\w.-]* row)[,{ ]/gm)].map((m) => m[1]),
+    [...css.matchAll(/^(\.[\w.-]+ row)[,{ ]/gm)].map((m) => m[1]),
   );
   assert.ok(rowSelectors.size > 0, "found no `X row` selectors to check");
   for (const selector of rowSelectors) {

@@ -6,6 +6,7 @@ export function render(ctx) {
 columnview.view,
 treeview.view,
 listview,
+list,
 iconview {
   background-color: @vl_bg_sunk;
   color: @vl_fg;
@@ -53,8 +54,11 @@ treeexpander > expander:checked {
 }
 
 /* Rows stay transparent so the view's surface shows through and the
-   selection fill is the only thing that paints a row. */
-list,
+   selection fill is the only thing that paints a row. Note \`list\` itself is
+   NOT here — it is a surface, not a row wrapper. GTK4 paints the two as
+   siblings (\`listview, list { background-color: … }\`), so forcing the
+   container transparent left a standalone GtkListBox with no surface at all,
+   indistinguishable from empty window background. Only its rows clear. */
 list > row,
 listview > row {
   background-color: transparent;
@@ -69,6 +73,21 @@ list > row:hover,
 listview > row:hover {
   background-color: alpha(@vl_accent, 0.2);
   color: @vl_fg;
+}
+
+/* Spacing only, and deliberately no background: GTK4 leaves the gridview
+   container unpainted (it has no \`gridview { background-color }\` rule of its
+   own), so matching that is correct rather than a gap. What we do lose by
+   replacing the stylesheet wholesale is upstream's child spacing, which
+   without these rules leaves an icon grid visibly cramped. Selection is
+   already handled — \`gridview > child\` carries no background here, so the
+   generic \`:selected\` fill in selection.mjs wins uncontested. */
+gridview > child {
+  padding: ${ctx.space["1"]};
+}
+
+gridview > child box {
+  margin: ${ctx.space["3"]};
 }`;
 }
 
