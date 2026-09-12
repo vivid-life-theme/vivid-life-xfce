@@ -49,8 +49,21 @@ not_blank() {
 # was once read as evidence about current work while every window actually
 # rendered a stylesheet five days stale. Abort rather than skip — a stale
 # capture is worse than no capture, because it still looks like evidence.
+
+# Only the targets whose pass will actually run. Checking gtk-4.0
+# unconditionally aborts on a machine with no GTK4 — install.sh auto-detects by
+# libgtk-4.so and installs no gtk-4.0 theme there, and gtk4-widget-factory is
+# absent for the same reason — which would make the GTK4 skip path below
+# unreachable and tell the user to run `./install.sh --all`, installing a GTK4
+# theme on a machine with no GTK4. A guard has to fail on the runs it guards,
+# not on the ones that were never going to happen.
+targets="gtk-3.0"
+if command -v gtk4-widget-factory >/dev/null 2>&1; then
+	targets="$targets gtk-4.0"
+fi
+
 for theme in $themes; do
-	for target in gtk-3.0 gtk-4.0; do
+	for target in $targets; do
 		installed="$HOME/.themes/$theme/$target/gtk.css"
 		generated="$here/../../$target/$theme/gtk.css"
 		# The missing-install case must abort too, not slip past. GTK_THEME

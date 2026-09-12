@@ -555,6 +555,14 @@ stacksidebar row {
    its entries are modelbutton nodes, so the GTK3 `menu`/`menuitem`
    selectors match nothing here. The fill goes on `> contents` — the
    popover node itself carries the shadow and is not the visible surface. */
+/* The `.background`-qualified twin looks redundant — every real popover
+   carries the class, so it matches nothing the bare form misses — but do not
+   delete it. `gtk4.test.mjs` asserts the literal string "popover > contents,"
+   *including the trailing comma*, and that comma exists only because this
+   line follows. Removing the twin fails the selector gate with a message
+   naming the selector that was kept, which reads as though the wrong line
+   went. Loud rather than silent, but confusing enough to be worth a warning
+   where someone tidying would actually be looking. */
 popover > contents,
 popover.background > contents {
   background-color: @vl_bg_overlay;

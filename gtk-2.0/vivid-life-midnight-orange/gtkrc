@@ -11,6 +11,15 @@ style "vivid-life-default" {
 
   fg[NORMAL]      = "#f5f5f5"
   fg[PRELIGHT]    = "#f5f5f5"
+  # Do not "fix the family at source" by changing this to text.fg. It looks
+  # like the root cause of every muted-label defect in this port, and it is
+  # not safe to touch alone: a pressed GtkButton's label gets its correct
+  # accent-on text FROM THIS LINE, because `class "GtkButton"` reaches the
+  # button but never the child GtkLabel that draws its text. Changing it here
+  # would leave every pressed button's label in the normal foreground over an
+  # accent fill, unless vivid-life-button simultaneously gains a descendant
+  # widget_class binding. Two known defects were fixed by binding the specific
+  # cases instead (button.mjs's toggle, chrome.mjs's notebook pages).
   fg[ACTIVE]      = "#171717"
   fg[SELECTED]    = "#171717"
   fg[INSENSITIVE] = "#525252"
@@ -185,8 +194,13 @@ widget_class "*<GtkNotebook>*<GtkLabel>" style "vivid-life-notebook"
    after it, which works because gtkrc takes the LAST matching binding among
    equal-priority widget_class rules and these three match different paths:
    a tab label is under no button, a page button's label is, and a check or
-   radio label is under a GtkCheckButton specifically. Each style below sets
-   only fg[ACTIVE], so nothing else leaks into the widgets they re-cover. */
+   radio label is under a GtkCheckButton specifically. And GTK2 merges matching
+   styles FIELD BY FIELD, so a style re-covers only the fields it actually sets
+   and drags nothing else with it: vivid-life-page-button sets fg[ACTIVE]
+   alone, vivid-life-toggle sets fg[ACTIVE] and fg[PRELIGHT] — the latter to
+   the same value a check label takes outside a notebook, so the rebinding
+   restores behaviour rather than changing it. Neither disturbs the tab
+   strip's surface colours. */
 style "vivid-life-page-button" {
   fg[ACTIVE] = "#171717"
 }

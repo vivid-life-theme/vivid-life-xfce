@@ -127,9 +127,10 @@ test("every composed gtk4 module exports a render function", () => {
    (`.foo > row`), widen the pattern to match it.
 
    The `^` anchor is load-bearing in both directions: it is what keeps the
-   explanatory comment above out of the match set, and it means a selector
-   written indented inside a list would be skipped silently. All four real
-   occurrences are flush at line start today. */
+   explanatory comment above out of the match set, and it means a base-form
+   selector written indented inside a list would be skipped silently. Only the
+   two base forms are line-matched; their `:selected` counterparts are found
+   with `includes()`, which is not anchored, so indenting those is harmless. */
 test("every sidebar row surface has a :selected restatement", () => {
   const midnight = flavorBlock("midnight");
   const css = renderGtk4Css(

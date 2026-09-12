@@ -8,6 +8,15 @@ export function render(ctx) {
 
   fg[NORMAL]      = "${ctx.text.fg}"
   fg[PRELIGHT]    = "${ctx.text.fg}"
+  # Do not "fix the family at source" by changing this to text.fg. It looks
+  # like the root cause of every muted-label defect in this port, and it is
+  # not safe to touch alone: a pressed GtkButton's label gets its correct
+  # accent-on text FROM THIS LINE, because \`class "GtkButton"\` reaches the
+  # button but never the child GtkLabel that draws its text. Changing it here
+  # would leave every pressed button's label in the normal foreground over an
+  # accent fill, unless vivid-life-button simultaneously gains a descendant
+  # widget_class binding. Two known defects were fixed by binding the specific
+  # cases instead (button.mjs's toggle, chrome.mjs's notebook pages).
   fg[ACTIVE]      = "${ctx.accentOn}"
   fg[SELECTED]    = "${ctx.accentOn}"
   fg[INSENSITIVE] = "${ctx.text.fg_disabled}"

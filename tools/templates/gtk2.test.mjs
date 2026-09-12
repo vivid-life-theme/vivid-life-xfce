@@ -65,7 +65,13 @@ test("every style is defined before the binding that references it", () => {
   );
   const defined = new Set();
   let bindings = 0;
+  let bindingShapedLines = 0;
   for (const line of gtkrc.split("\n")) {
+    // Deliberately loose: any line that looks like a binding at all, however
+    // it is spaced or quoted. The strict regex below must match every one of
+    // them, which is the property actually being protected.
+    if (/^\s*(?:class|widget_class|widget)\s/.test(line))
+      bindingShapedLines += 1;
     const declaration = line.match(/^style "([^"]+)"/);
     if (declaration) {
       defined.add(declaration[1]);
@@ -84,13 +90,16 @@ test("every style is defined before the binding that references it", () => {
   }
   assert.ok(defined.size >= 3, "no styles found — the composition lost them");
   // The bindings are the side that does the asserting, so this gate proves
-  // nothing unless the binding regex matched. Without it, a binding emitted
-  // with leading indentation or in a new form would make the loop find zero
-  // bindings, assert zero times, and pass — the same shape as the three
-  // checks-that-could-not-fail this phase already shipped.
-  assert.ok(
-    bindings >= defined.size,
-    `only ${bindings} bindings matched against ${defined.size} styles — the binding regex regressed`,
+  // nothing unless the strict regex matched. Comparing against the style count
+  // is not enough: four styles are bound twice, so that form has four lines of
+  // slack and up to four bindings could slip out of the strict regex — exactly
+  // the "emitted with leading indentation" case — while still passing. The
+  // property actually meant is that the strict regex matched EVERY
+  // binding-shaped line, so compare the two counts directly.
+  assert.equal(
+    bindings,
+    bindingShapedLines,
+    `the strict binding regex matched ${bindings} of ${bindingShapedLines} binding-shaped lines — it regressed, and the unmatched ones were never checked`,
   );
 });
 

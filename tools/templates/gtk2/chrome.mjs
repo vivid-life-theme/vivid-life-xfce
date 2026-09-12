@@ -32,8 +32,13 @@ widget_class "*<GtkNotebook>*<GtkLabel>" style "vivid-life-notebook"
    after it, which works because gtkrc takes the LAST matching binding among
    equal-priority widget_class rules and these three match different paths:
    a tab label is under no button, a page button's label is, and a check or
-   radio label is under a GtkCheckButton specifically. Each style below sets
-   only fg[ACTIVE], so nothing else leaks into the widgets they re-cover. */
+   radio label is under a GtkCheckButton specifically. And GTK2 merges matching
+   styles FIELD BY FIELD, so a style re-covers only the fields it actually sets
+   and drags nothing else with it: vivid-life-page-button sets fg[ACTIVE]
+   alone, vivid-life-toggle sets fg[ACTIVE] and fg[PRELIGHT] — the latter to
+   the same value a check label takes outside a notebook, so the rebinding
+   restores behaviour rather than changing it. Neither disturbs the tab
+   strip's surface colours. */
 style "vivid-life-page-button" {
   fg[ACTIVE] = "${ctx.accentOn}"
 }
