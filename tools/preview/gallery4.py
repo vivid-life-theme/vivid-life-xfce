@@ -118,15 +118,32 @@ def inputs_section():
         marked.add_mark(position, Gtk.PositionType.BOTTOM, str(position))
     box.append(row(label("Scale:"), scale, marked))
 
-    check = Gtk.CheckButton(label="Checkbox")
+    # Both states of each indicator, not just the active one. An unchecked box
+    # and an unselected radio are the states that show whether the indicator
+    # has an edge against the surface at all — the checked ones are filled with
+    # accent and legible almost by construction. A sheet holding only the
+    # active state cannot answer the question the sheet exists to answer.
+    check = Gtk.CheckButton(label="Checked")
     check.set_active(True)
-    radio = Gtk.CheckButton(label="Radio")
-    radio.set_group(Gtk.CheckButton())
+    unchecked = Gtk.CheckButton(label="Unchecked")
+    radio = Gtk.CheckButton(label="Selected")
+    unselected = Gtk.CheckButton(label="Unselected")
+    unselected.set_group(radio)
     radio.set_active(True)
+    box.append(row(check, unchecked, radio, unselected))
+
+    # Both switch states, and the disabled pair — switch:disabled painted no
+    # pixels at all until this round, and nothing on the sheet would have shown
+    # it.
     toggle = Gtk.Switch()
     toggle.set_active(True)
     off = Gtk.Switch()
-    box.append(row(check, radio, toggle, off))
+    disabled_on = Gtk.Switch()
+    disabled_on.set_active(True)
+    disabled_on.set_sensitive(False)
+    disabled_off = Gtk.Switch()
+    disabled_off.set_sensitive(False)
+    box.append(row(label("Switch:"), toggle, off, disabled_on, disabled_off))
 
     # GtkComboBoxText is deprecated in GTK4; GtkDropDown is the replacement.
     drop = Gtk.DropDown.new_from_strings(["Midnight", "Twilight", "Dawn", "Noon"])

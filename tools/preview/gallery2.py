@@ -94,6 +94,15 @@ def menus_section():
         menubar.append(item)
     box.pack_start(menubar, False, False, 0)
 
+    # GTK2 menu POPUPS are not verifiable in this harness, and that limit is
+    # real rather than an oversight. A popped-up GtkMenu is an
+    # override-redirect toplevel; PyGObject's GTK2 bindings do not expose
+    # Gtk.Menu.popup, and a GtkMenu cannot be packed inline instead because it
+    # already owns an internal toplevel parent (gtk_box_pack rejects it). So
+    # the menu surface itself, its item prelight, and the separator are
+    # verified by the gtkrc parser and by computed contrast only — never by
+    # capture. That gap is what let the separator stay the same colour as its
+    # own surface on six themes until it was caught by measurement.
     toolbar = Gtk.Toolbar()
     toolbar.set_style(Gtk.ToolbarStyle.TEXT)
     for name in ("Open", "Save", "Undo"):
