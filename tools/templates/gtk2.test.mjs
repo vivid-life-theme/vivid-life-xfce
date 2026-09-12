@@ -64,6 +64,7 @@ test("every style is defined before the binding that references it", () => {
     accentOn("noon"),
   );
   const defined = new Set();
+  let bindings = 0;
   for (const line of gtkrc.split("\n")) {
     const declaration = line.match(/^style "([^"]+)"/);
     if (declaration) {
@@ -74,6 +75,7 @@ test("every style is defined before the binding that references it", () => {
       /^(?:class|widget_class|widget) "[^"]+" style "([^"]+)"/,
     );
     if (binding) {
+      bindings += 1;
       assert.ok(
         defined.has(binding[1]),
         `binding references style "${binding[1]}" before it is defined`,
@@ -81,6 +83,15 @@ test("every style is defined before the binding that references it", () => {
     }
   }
   assert.ok(defined.size >= 3, "no styles found — the composition lost them");
+  // The bindings are the side that does the asserting, so this gate proves
+  // nothing unless the binding regex matched. Without it, a binding emitted
+  // with leading indentation or in a new form would make the loop find zero
+  // bindings, assert zero times, and pass — the same shape as the three
+  // checks-that-could-not-fail this phase already shipped.
+  assert.ok(
+    bindings >= defined.size,
+    `only ${bindings} bindings matched against ${defined.size} styles — the binding regex regressed`,
+  );
 });
 
 test("renderGtk2Gtkrc binds the widget classes Xfce renders", () => {

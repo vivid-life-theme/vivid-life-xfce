@@ -124,7 +124,12 @@ test("every composed gtk4 module exports a render function", () => {
    demanding it would assert a requirement specificity does not impose.
    (selection.mjs does list the two bare-type sidebar forms anyway; harmless,
    just not load-bearing.) If a combinator form ever gains a class
-   (`.foo > row`), widen the pattern to match it. */
+   (`.foo > row`), widen the pattern to match it.
+
+   The `^` anchor is load-bearing in both directions: it is what keeps the
+   explanatory comment above out of the match set, and it means a selector
+   written indented inside a list would be skipped silently. All four real
+   occurrences are flush at line start today. */
 test("every sidebar row surface has a :selected restatement", () => {
   const midnight = flavorBlock("midnight");
   const css = renderGtk4Css(
