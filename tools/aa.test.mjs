@@ -256,6 +256,14 @@ const REFERENCE_RE = /@(vl_\w+)/g;
 function undefinedNames(css) {
   const defined = new Set([...css.matchAll(DEFINE_RE)].map((m) => m[1]));
   const referenced = new Set([...css.matchAll(REFERENCE_RE)].map((m) => m[1]));
+  // Both sets must be non-empty or this test proves nothing: a regex that
+  // stopped matching would report zero undefined names and pass, exactly as
+  // if the CSS were correct. Phase 4 shipped a gtkrc parser probe with this
+  // shape — it invoked pinentry in a way that never parsed the file, so it
+  // passed on a deliberately broken stylesheet. A gate that cannot fail is
+  // worse than no gate, because it is counted as evidence.
+  assert.ok(defined.size > 0, "no @define-color names found — regex regressed");
+  assert.ok(referenced.size > 0, "no @vl_* references found — regex regressed");
   return [...referenced].filter((name) => !defined.has(name));
 }
 

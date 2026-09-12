@@ -114,11 +114,23 @@ def inputs_section():
     combo.set_active(0)
     box.pack_start(row(label("Dropdown:"), combo), False, False, 0)
 
-    check = Gtk.CheckButton(label="Checkbox")
+    # new_with_label, not the `label=` property: under GTK2's bindings the
+    # property form constructs the button but renders no text, which makes a
+    # capture look like the theme lost the label.
+    check = Gtk.CheckButton.new_with_label("Checked")
     check.set_active(True)
-    radio = Gtk.RadioButton(label="Radio")
-    radio.set_active(True)
-    box.pack_start(row(check, radio), False, False, 0)
+    unchecked = Gtk.CheckButton.new_with_label("Unchecked")
+    box.pack_start(row(check, unchecked), False, False, 0)
+
+    # A lone radio cannot show the unselected state — GTK keeps a single
+    # radio active — so the pair is what makes the indicator legible.
+    # ..._from_widget, not new_with_label(None, …): the group argument of the
+    # latter is a GSList that PyGObject will not accept as None, and the
+    # failure is a hard TypeError at construction, not a missing label.
+    selected = Gtk.RadioButton.new_with_label_from_widget(None, "Selected")
+    unselected = Gtk.RadioButton.new_with_label_from_widget(selected, "Unselected")
+    selected.set_active(True)
+    box.pack_start(row(selected, unselected), False, False, 0)
 
     scale = Gtk.HScale.new_with_range(0, 100, 1)
     scale.set_value(60)

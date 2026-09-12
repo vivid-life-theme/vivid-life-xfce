@@ -44,6 +44,17 @@ else
 	label_args=""
 fi
 
+# A failed grab still writes a small, valid, entirely blank PNG, and `[ -s ]`
+# accepts it — a whole 24-theme run once reported exit 0 while every single
+# capture was a 214-byte blank, because the gallery crashed at startup and
+# nothing checked the pixels. Count distinct colours instead: a blank image
+# has exactly one, any real window has thousands.
+not_blank() {
+	[ -s "$1" ] || return 1
+	colours=$(identify -format '%k' "$1" 2>/dev/null || echo 1)
+	[ "$colours" -gt 16 ]
+}
+
 # Time order, not alphabetical.
 flavors="midnight twilight dawn noon"
 variants="red orange yellow green blue purple"
@@ -84,7 +95,7 @@ for flavor in $flavors; do
       grab_status=\$?
       wait \$gallery_pid 2>/dev/null || true
       exit \$grab_status
-    " && [ -s "$png" ]; then
+    " && not_blank "$png"; then
 			sheet_inputs="$sheet_inputs $png"
 		else
 			echo "preview:shots2 — capture FAILED for $theme; excluded from sheet." >&2

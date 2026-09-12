@@ -48,6 +48,17 @@ else
 	label_args=""
 fi
 
+# A failed grab still writes a small, valid, entirely blank PNG, and `[ -s ]`
+# accepts it. The GTK2 sweep reported exit 0 while all 24 captures were
+# 214-byte blanks, because the gallery crashed at startup and nothing looked
+# at the pixels. Count distinct colours: a blank has exactly one, a real
+# window has hundreds.
+not_blank() {
+	[ -s "$1" ] || return 1
+	colours=$(identify -format '%k' "$1" 2>/dev/null || echo 1)
+	[ "$colours" -gt 16 ]
+}
+
 # Time order, not alphabetical.
 flavors="midnight twilight dawn noon"
 variants="red orange yellow green blue purple"
@@ -92,7 +103,7 @@ for flavor in $flavors; do
       grab_status=\$?
       wait \$gallery_pid 2>/dev/null || true
       exit \$grab_status
-    " && [ -s "$png" ]; then
+    " && not_blank "$png"; then
 			sheet_inputs="$sheet_inputs $png"
 		else
 			echo "preview:shots4 — capture failed for $theme; excluded from contact sheet." >&2

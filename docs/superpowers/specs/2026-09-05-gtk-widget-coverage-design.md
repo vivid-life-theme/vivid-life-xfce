@@ -135,6 +135,13 @@ Separately, adjacent buttons need `margin` so they do not merge into one mass �
 - **`*:selected label`**: the rule shipped in `ee09a97` sets `color` on _every_ label under a selected row, which also flattens `.warning`/`.error`/`.success` text inside selected rows. Narrow it to `.dim-label`/subtitle labels, or keep it broad and state the tradeoff explicitly in the comment. Either way it gains a test.
 - **Thunar toolbar icon sizes**: no longer reproducing. Thunar captured under `vivid-life-midnight-blue` after the phase 2 sweep shows normal-size toolbar icons on a themed toolbar band. The port had no `toolbar` rules when the report was made; it does now. Re-open only if it recurs.
 
+### Open, found in phase 4 — GTK3 defects out of scope there
+
+Both shipped in phase 3 (`eb2c3b7`) and were found while porting the same widgets to GTK4. Phase 4 deliberately left `gtk-3.0/` byte-identical to phase 3, so neither is fixed. Both are the same root cause: **a rule that names a colour but not the glyph or state that makes the widget appear.**
+
+- **`levelbar block.filled` matches nothing.** `tools/templates/gtk3/progress.mjs:21`. There is no `.filled` class in GTK3 **or** GTK4; both use `block:not(.empty)`. A mid-range GTK3 level bar therefore draws no fill at all — only `.low`/`.high`/`.full` blocks paint. Phase 2's review looked at bars at 15/50/90; the 15 and 90 filled via `.low`/`.high`, which is likely why the middle one's absence went unnoticed.
+- **The GTK3 spinner is invisible.** `tools/templates/gtk3/progress.mjs:42` sets colour and size only. GTK3's Adwaita defines the spinner exactly as GTK4 does — `opacity: 0` plus `-gtk-icon-source` and a `:checked` animation — and a theme replaces that wholesale, so ours renders an empty box. The GTK4 fix (`3021dc7`) is the template to copy.
+
 ## Lessons from the coverage sweep
 
 Four GTK behaviours cost real debugging time in phase 2 and will cost it again in the GTK4/GTK2 phase. Each was established by measurement, not documentation.
@@ -146,12 +153,19 @@ Four GTK behaviours cost real debugging time in phase 2 and will cost it again i
 
 Contact-sheet review after every module is what caught all four. Three of them produce output that looks plausible in isolation and is only wrong next to the widget it should match.
 
+### Added in phase 4 (GTK4 and GTK2)
+
+- **Diffing against GTK's own stylesheet is necessary but not sufficient.** Extract it with `objcopy --dump-section .gresource.gtk=<out> <copy of libgtk-4.so.1>` then `gresource extract <out> /org/gtk/libgtk/theme/Default/Default-dark.css`. Work from a _copy_ of the library — `objcopy` cannot write beside the original — and use the distribution `gresource`, since Homebrew's lacks ELF support. This method caught four defects before dispatch that code review would have shipped. It still missed two widgets that rendered nothing, because a stylesheet cannot tell you what a widget looks like.
+- **GTK4 gives several nodes no intrinsic size, so a colour-only rule renders nothing.** `progressbar > trough` reserved zero pixels and was absent entirely until `min-height` was set on **both** trough and `> progress` — the child does not inherit it. Whenever a widget is invisible rather than mis-coloured, check dimensions before selectors.
+- **The harness can lie about what it rendered, and that is worse than it failing.** `GTK_THEME` resolves by _name_ through `~/.themes`, so the preview scripts render whatever was last installed, not the working tree. A full 24-theme capture plus two widget-factory captures were once read as evidence about current work while every window rendered a stylesheet five days stale (2450 bytes against 23506). Seven defects were reported from those screenshots; all seven were artifacts, and the screenshots looked entirely plausible. `shots4.sh`, `shots2.sh` and `factory.sh` now compare installed against generated and abort. **Verifying against a running system proves nothing until you prove the system runs the thing you changed** — the check is one `cmp`.
+- **A harness gap reads exactly like a theme defect.** Two GTK4 findings were the gallery's fault, not the theme's: a level bar with no `hexpand` collapses to a sliver (GTK sets `min-width` only for `.discrete`/`.vertical`, so it collapses under Adwaita too), and `GtkLevelBar`'s built-in `low`/`high` offsets are defined against the default 0–1 interval, so bars built with `new_for_interval(0, 100)` never apply those classes — leaving the `.low`/`.high`/`.full` rules unexercised while appearing to work. Under GTK2, `Gtk.CheckButton(label=…)` constructs a button that renders no text. Before blaming a rule, confirm the harness exercises it.
+
 ## Definition of done
 
 1. `npm test` passes, including the generalized contrast gate over every module × 24 combinations.
 2. `npm run check` reports no drift.
-3. `npm run preview:shots` produces four contact sheets that are reviewed by a human.
-4. The gallery is diffed against `gtk3-widget-factory` and no widget it renders is left unstyled.
+3. `npm run preview:shots` produces four contact sheets that are reviewed by a human. From phase 4, the same applies to `preview:shots4` (GTK4) and `preview:shots2` (GTK2) — twelve sheets in total. **Reinstall before capturing**, or the guard in those scripts aborts: they render what is installed, not what is generated.
+4. The gallery is diffed against `gtk3-widget-factory` and no widget it renders is left unstyled. From phase 4, likewise against `gtk4-widget-factory`. GTK2 has no widget factory, which is why `gallery2.py` exists.
 5. The apps that produced the original reports — Thunar, xfce4-terminal, the Appearance and Window Manager dialogs, Whisker Menu — are spot-checked.
 
 ## Sequencing
@@ -159,13 +173,21 @@ Contact-sheet review after every module is what caught all four. Three of them p
 1. **Safety net, no visual change.** Preview harness, module split, generalized contrast gate. The split is a pure refactor: generated output must be byte-identical, proven by `npm run check` before and after.
 2. **Known defects.** Whisker two-tone, control boundary and button margins, `switch`, narrowed `*:selected label`.
 3. **Coverage sweep.** Module by module through the unstyled-node list, contact sheet reviewed after each. **Done** — `a516a54..391d101`, planned in `docs/superpowers/plans/2026-09-06-gtk-coverage-phase2.md`. Every node listed above now has rules; verified against `gtk3-widget-factory` and spot-checked in Thunar, xfce4-terminal and the Appearance dialog.
-4. **GTK4, then GTK2.** Same module structure; GTK4 verified with the widget factory where libadwaita does not override, GTK2 spot-checked against a real GTK2 application.
+4. **GTK4, then GTK2.** Same module structure; GTK4 verified with the widget factory where libadwaita does not override, GTK2 spot-checked against a real GTK2 application. **Done** — `2d2d712..0359809` (22 commits), planned in `docs/superpowers/plans/2026-09-07-gtk-coverage-phase4.md`. Both targets split into per-widget modules byte-identically, the contrast gate generalized over all three targets, and GTK4 and GTK2 galleries added with contact sheets for all 24 combinations. `gtk-3.0/` is byte-identical to phase 3 throughout, which is why the two GTK3 defects found here are recorded above rather than fixed.
+
+#### What phase 4 verified, and what it did not
+
+GTK4 is verified against both the gallery and `gtk4-widget-factory` across all 24 combinations. GTK2 is verified against `gallery2.py` across all 24, plus `pinentry-gtk-2` — the only real GTK2 application on a current machine — at both ends of the flavour range.
+
+The GTK2 gallery exists because `pinentry-gtk-2` renders a dialog, a label, an entry and two buttons and nothing else. Without it, menus, menubar, toolbars, notebooks, tree and column headers, combo boxes, frames and scrolled windows would have shipped verified only by the gtkrc parser accepting the file — which says nothing about whether a rule reaches a widget, and phase 4 twice found GTK4 widgets that parsed cleanly, passed every test, and rendered nothing.
+
+Still unverified: **GTK2 tooltips**, which need a hover the capture cannot produce, and **libadwaita applications**, which override the theme by design and are out of scope per the non-goals.
 
 Phase 1 landing before any visual change is deliberate: it is what makes phases 2–4 verifiable, and it is the only phase whose correctness can be proven mechanically (byte-identical output).
 
 ## Risks
 
 - **The module split silently changes output.** Mitigated by requiring byte-identical generated files across the refactor, which `npm run check` already verifies.
-- **`GTK_THEME` does not fully apply in a headless Xvfb session**, making screenshots unrepresentative. Probe this early in phase 1; if it proves unreliable, fall back to `GTK_DATA_PREFIX`/`gtk-theme-name` in a generated `settings.ini` for the harness run.
+- ~~**`GTK_THEME` does not fully apply in a headless Xvfb session**, making screenshots unrepresentative.~~ **Settled in phase 4, but not as written.** `GTK_THEME` applies fully and reliably under Xvfb for GTK3 and GTK4; no `GTK_DATA_PREFIX` fallback was needed. The real hazard was the opposite shape: it applies _perfectly, to whatever is installed in `~/.themes`_, which need not be what you just generated. That produces confident, plausible, entirely false screenshots — strictly more dangerous than a theme that visibly fails to apply. Mitigated by the staleness guard in `shots4.sh`, `shots2.sh` and `factory.sh`. GTK2 sidesteps the problem by selecting with `GTK2_RC_FILES`, which names a file rather than a theme.
 - **Comprehensive coverage invites divergence from the design system's visual language**, since most GTK widgets have no kitchen-sink counterpart. Where a widget has no upstream analogue, derive from the nearest one that does and note the derivation in the module, rather than inventing a look.
 - **The derived control boundary may read as heavier than intended** on flavors where it resolves to `text.fg_muted`. Judge on the contact sheets in phase 2; if too heavy, the fallback chain gains an intermediate candidate rather than dropping the 3:1 requirement.
