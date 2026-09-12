@@ -25,7 +25,12 @@ entry:focus-within {
   border-color: @vl_accent;
 }
 
-entry:disabled {
+/* The child needs naming explicitly. \`entry > text\` sets \`color\` directly,
+   and a declaration on the element always beats a value inherited from its
+   parent whatever the specificity — so disabling the entry muted nothing the
+   user can actually see, because the text they read is drawn by the child. */
+entry:disabled,
+entry:disabled > text {
   color: @vl_fg_disabled;
 }
 

@@ -36,6 +36,19 @@ button.destructive-action {
   border-color: @vl_danger;
 }
 
+/* Both action rules are (0,1,1), exactly like \`button:disabled\` above, and
+   they come later — so source order handed a disabled suggested or
+   destructive button its full accent fill and accent-on text, and it
+   rendered indistinguishable from an enabled one. Restate the disabled form
+   at (0,1,2) so it wins regardless of order, and return the button to the
+   neutral surface rather than merely muting the text on an accent fill. */
+button.suggested-action:disabled,
+button.destructive-action:disabled {
+  background-color: @vl_bg_soft;
+  color: @vl_fg_disabled;
+  border-color: @vl_control_border;
+}
+
 /* A linked group is one control drawn as several: square the interior
    corners and collapse the shared edges so three buttons read as a
    segmented control rather than three adjacent controls. */
