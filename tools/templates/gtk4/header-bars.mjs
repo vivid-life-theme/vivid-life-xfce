@@ -4,7 +4,14 @@ export function render(ctx) {
   return `headerbar {
   background-color: @vl_bg_soft;
   color: @vl_fg;
-  border-bottom: 1px solid @vl_border;
+  /* control_border, not border — the toolbar and actionbar rules below
+     already use it, and this line was the odd one out. \`border.default\` is
+     the value this spec's own Problem section records as failing 3:1 against
+     every surface on every flavour and being *identical* to the surface in
+     three cases; deriving control_border is the fix that motivated the
+     phase. Against bg_soft it measures 1.00:1 on Midnight — the headerbar
+     simply had no bottom edge there. */
+  border-bottom: 1px solid @vl_control_border;
 }
 
 /* GtkToolbar was removed in GTK4. What remains is the .toolbar style class
@@ -45,6 +52,15 @@ button.flat:hover {
 
 export function contrastPairs(ctx) {
   return [
+    {
+      // The headerbar's own boundary was never declared — only the toolbar's
+      // was — which is how it kept an ungated `border.default` while its two
+      // siblings in this module moved to control_border.
+      label: "headerbar boundary",
+      fg: ctx.control.border,
+      bg: ctx.surface.bg_soft,
+      rule: "nontext",
+    },
     {
       label: "headerbar title",
       fg: ctx.text.fg,

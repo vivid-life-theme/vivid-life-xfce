@@ -27,8 +27,21 @@ switch:checked > slider {
   background-color: @vl_accent_on;
 }
 
-switch:disabled {
-  color: @vl_fg_disabled;
+/* The trough and the knob are both painted with background-color, so a
+   disabled rule setting \`color\` alone changes nothing a switch draws — it
+   rendered identically to an enabled one, in either state. Repaint both, the
+   way scale.mjs does for its disabled slider. The checked forms need naming
+   explicitly: \`switch:checked\` is (0,2,0) and would otherwise outrank a bare
+   \`switch:disabled\` on the same element. */
+switch:disabled,
+switch:checked:disabled {
+  background-color: @vl_bg_sunk;
+  border-color: @vl_fg_disabled;
+}
+
+switch:disabled > slider,
+switch:checked:disabled > slider {
+  background-color: @vl_fg_disabled;
 }`;
 }
 
@@ -39,6 +52,15 @@ export function contrastPairs(ctx) {
       fg: ctx.text.fg_muted,
       bg: ctx.surface.bg_sunk,
       rule: "nontext",
+    },
+    {
+      // Sibling modules declare their disabled state; this one did not, which
+      // is why nothing caught that the disabled rule painted no pixels.
+      label: "disabled switch slider",
+      fg: ctx.text.fg_disabled,
+      bg: ctx.surface.bg_sunk,
+      rule: "nontext",
+      exempt: "WCAG 1.4.11 — inactive user-interface component",
     },
     {
       label: "switch slider when checked",

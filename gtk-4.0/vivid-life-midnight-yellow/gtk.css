@@ -306,8 +306,21 @@ switch:checked > slider {
   background-color: @vl_accent_on;
 }
 
-switch:disabled {
-  color: @vl_fg_disabled;
+/* The trough and the knob are both painted with background-color, so a
+   disabled rule setting `color` alone changes nothing a switch draws — it
+   rendered identically to an enabled one, in either state. Repaint both, the
+   way scale.mjs does for its disabled slider. The checked forms need naming
+   explicitly: `switch:checked` is (0,2,0) and would otherwise outrank a bare
+   `switch:disabled` on the same element. */
+switch:disabled,
+switch:checked:disabled {
+  background-color: @vl_bg_sunk;
+  border-color: @vl_fg_disabled;
+}
+
+switch:disabled > slider,
+switch:checked:disabled > slider {
+  background-color: @vl_fg_disabled;
 }
 
 /* GTK4 wraps both in a checkbutton; the indicator keeps the GTK3 node
@@ -644,7 +657,14 @@ menubar > item:disabled {
 headerbar {
   background-color: @vl_bg_soft;
   color: @vl_fg;
-  border-bottom: 1px solid @vl_border;
+  /* control_border, not border — the toolbar and actionbar rules below
+     already use it, and this line was the odd one out. `border.default` is
+     the value this spec's own Problem section records as failing 3:1 against
+     every surface on every flavour and being *identical* to the surface in
+     three cases; deriving control_border is the fix that motivated the
+     phase. Against bg_soft it measures 1.00:1 on Midnight — the headerbar
+     simply had no bottom edge there. */
+  border-bottom: 1px solid @vl_control_border;
 }
 
 /* GtkToolbar was removed in GTK4. What remains is the .toolbar style class
