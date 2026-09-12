@@ -142,6 +142,19 @@ def feedback_section():
     for value, caption in ((15, "low"), (50, "filled"), (90, "high")):
         level = Gtk.LevelBar.new_for_interval(0, 100)
         level.set_value(value)
+        # Without this the bar collapses to its ~2px minimum and the capture
+        # shows a sliver, which reads as a theme defect but is not one: GTK4
+        # sets min-width only for .discrete and .vertical level bars, so a
+        # horizontal continuous bar collapses under Adwaita too.
+        level.set_hexpand(True)
+        # GtkLevelBar's built-in "low"/"high" offsets are defined against the
+        # default 0-1 interval, so a bar built with new_for_interval(0, 100)
+        # never applies those classes and every bar renders plain accent. The
+        # .low/.high/.full rules then go unexercised, which looks like they
+        # work. Restate the offsets in this interval's own units.
+        level.add_offset_value("low", 25)
+        level.add_offset_value("high", 75)
+        level.add_offset_value("full", 100)
         box.append(row(label(f"Level ({caption}):"), level))
     spinner = Gtk.Spinner()
     spinner.start()

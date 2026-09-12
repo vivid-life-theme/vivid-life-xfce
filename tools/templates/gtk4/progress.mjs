@@ -1,5 +1,22 @@
 export function render(ctx) {
-  return `progressbar > trough {
+  return `/* The dimensions are load-bearing, not cosmetic. GTK4 gives the trough no
+   intrinsic height, so a colour-only rule yields a zero-height bar: the
+   widget is laid out, reserves no pixels, and renders nothing at all.
+   Confirmed by capture — the progress bar was simply absent from the
+   gallery until these lines existed. GTK4's own sheet sets min-height on
+   BOTH trough and progress, and only the pair works; the child does not
+   inherit it. */
+progressbar > trough,
+progressbar > trough > progress {
+  min-height: ${ctx.space["1"]};
+}
+
+progressbar.vertical > trough,
+progressbar.vertical > trough > progress {
+  min-width: ${ctx.space["1"]};
+}
+
+progressbar > trough {
   background-color: @vl_bg_sunk;
   border-radius: ${ctx.radius.sm};
 }

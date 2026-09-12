@@ -67,6 +67,28 @@ separator {
   min-height: 1px;
 }
 
+/* The semantic text classes. GTK3 got these in phase 3 (gtk3/infobar.mjs);
+   GTK4 defined the tokens and then never consumed them, so warning, error
+   and success text all rendered as plain foreground — confirmed by capture,
+   where all three labels were the same near-white. Token mapping mirrors
+   GTK3's deliberately, including `.error` taking the danger token rather
+   than an error token of its own, which does not exist.
+
+   Scope: these are the foreground classes only. GTK4 still has GtkInfoBar,
+   whose element-level `.warning`/`.error` fills GTK3 handles in that same
+   module, and which this port does not yet cover. */
+.warning {
+  color: @vl_warning;
+}
+
+.error {
+  color: @vl_danger;
+}
+
+.success {
+  color: @vl_success;
+}
+
 button {
   background-color: @vl_bg_soft;
   color: @vl_fg;
@@ -650,6 +672,23 @@ scrollbar slider {
 
 scrollbar slider:hover {
   background-color: @vl_accent;
+}
+
+/* The dimensions are load-bearing, not cosmetic. GTK4 gives the trough no
+   intrinsic height, so a colour-only rule yields a zero-height bar: the
+   widget is laid out, reserves no pixels, and renders nothing at all.
+   Confirmed by capture — the progress bar was simply absent from the
+   gallery until these lines existed. GTK4's own sheet sets min-height on
+   BOTH trough and progress, and only the pair works; the child does not
+   inherit it. */
+progressbar > trough,
+progressbar > trough > progress {
+  min-height: 4px;
+}
+
+progressbar.vertical > trough,
+progressbar.vertical > trough > progress {
+  min-width: 4px;
 }
 
 progressbar > trough {

@@ -38,6 +38,28 @@ separator {
   background-color: @vl_border;
   min-width: ${ctx.space.px};
   min-height: ${ctx.space.px};
+}
+
+/* The semantic text classes. GTK3 got these in phase 3 (gtk3/infobar.mjs);
+   GTK4 defined the tokens and then never consumed them, so warning, error
+   and success text all rendered as plain foreground — confirmed by capture,
+   where all three labels were the same near-white. Token mapping mirrors
+   GTK3's deliberately, including \`.error\` taking the danger token rather
+   than an error token of its own, which does not exist.
+
+   Scope: these are the foreground classes only. GTK4 still has GtkInfoBar,
+   whose element-level \`.warning\`/\`.error\` fills GTK3 handles in that same
+   module, and which this port does not yet cover. */
+.warning {
+  color: @vl_warning;
+}
+
+.error {
+  color: @vl_danger;
+}
+
+.success {
+  color: @vl_success;
 }`;
 }
 
@@ -63,6 +85,24 @@ export function contrastPairs(ctx) {
       rule: "nontext",
       exempt:
         "WCAG 1.4.11 — decorative separator, not a UI component whose state must be identifiable",
+    },
+    {
+      label: "warning text",
+      fg: ctx.semantic.warning,
+      bg: ctx.surface.bg,
+      rule: "text",
+    },
+    {
+      label: "error text",
+      fg: ctx.semantic.danger,
+      bg: ctx.surface.bg,
+      rule: "text",
+    },
+    {
+      label: "success text",
+      fg: ctx.semantic.success,
+      bg: ctx.surface.bg,
+      rule: "text",
     },
   ];
 }
