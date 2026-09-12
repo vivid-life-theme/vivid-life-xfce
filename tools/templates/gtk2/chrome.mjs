@@ -18,6 +18,32 @@ class "GtkNotebook" style "vivid-life-notebook"
    checked-toggle label in button.mjs. */
 widget_class "*<GtkNotebook>*<GtkLabel>" style "vivid-life-notebook"
 
+/* …but that pattern matches every GtkLabel anywhere below a notebook, not
+   just the ones in the tab strip, and a page-resident button's label is one
+   of them. Its button still fills with bg[ACTIVE] = accent, so the label was
+   left muted-on-accent: 1.03:1 on Dawn Red, effectively invisible.
+
+   Narrowing to the direct-child form does not work either — a composite tab
+   built with set_tab_label(page, hbox) puts its label at
+   GtkNotebook.GtkHBox.GtkLabel, one level too deep, which re-opens the
+   invisible-inactive-tab defect the binding above exists to fix.
+
+   So the tab-strip rule stays broad and the page-content cases are restored
+   after it, which works because gtkrc takes the LAST matching binding among
+   equal-priority widget_class rules and these three match different paths:
+   a tab label is under no button, a page button's label is, and a check or
+   radio label is under a GtkCheckButton specifically. Each style below sets
+   only fg[ACTIVE], so nothing else leaks into the widgets they re-cover. */
+style "vivid-life-page-button" {
+  fg[ACTIVE] = "${ctx.accentOn}"
+}
+
+widget_class "*<GtkNotebook>*<GtkButton>*<GtkLabel>" style "vivid-life-page-button"
+
+/* GtkCheckButton derives from GtkButton, so the rule above would otherwise
+   undo button.mjs's toggle fix inside a notebook. Rebound last. */
+widget_class "*<GtkNotebook>*<GtkCheckButton>*<GtkLabel>" style "vivid-life-toggle"
+
 # bg[NORMAL] is the trough; the bar itself is drawn with the selected
 # colours, which is why an accent progress bar needs no separate key.
 style "vivid-life-progress" {

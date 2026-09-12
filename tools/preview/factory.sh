@@ -35,6 +35,15 @@ themes="vivid-life-midnight-blue vivid-life-noon-red"
 
 mkdir -p "$out"
 
+# A failed grab still writes a small, valid, entirely blank PNG. shots2.sh and
+# shots4.sh both gained this check after a 24-theme sweep reported exit 0 with
+# every capture blank; factory.sh was rewritten on the same branch and did not.
+not_blank() {
+	[ -s "$1" ] || return 1
+	colours=$(identify -format '%k' "$1" 2>/dev/null || echo 1)
+	[ "$colours" -gt 16 ]
+}
+
 # GTK_THEME resolves by NAME through ~/.themes, so this harness renders
 # whatever was last installed rather than the working tree. A full capture run
 # was once read as evidence about current work while every window actually
@@ -44,7 +53,19 @@ for theme in $themes; do
 	for target in gtk-3.0 gtk-4.0; do
 		installed="$HOME/.themes/$theme/$target/gtk.css"
 		generated="$here/../../$target/$theme/gtk.css"
-		if [ -f "$installed" ] && [ -f "$generated" ] && ! cmp -s "$installed" "$generated"; then
+		# The missing-install case must abort too, not slip past. GTK_THEME
+		# naming a theme GTK cannot resolve does not fail: GTK falls back to
+		# its built-in default and the capture succeeds, writing a perfectly
+		# plausible factory-vivid-life-<name>.png of the wrong theme. Reachable
+		# on a fresh clone that never ran install.sh, or after an
+		# ./install.sh --targets=… run that omitted this target.
+		if [ ! -f "$installed" ]; then
+			echo "preview:factory — ABORT: $theme/$target is not installed." >&2
+			echo "  GTK_THEME would silently fall back to the default theme." >&2
+			echo "  Run: npm run generate && ./install.sh --all" >&2
+			exit 1
+		fi
+		if [ -f "$generated" ] && ! cmp -s "$installed" "$generated"; then
 			echo "preview:factory — ABORT: $theme/$target is installed stale." >&2
 			echo "  installed: $installed" >&2
 			echo "  generated: $generated" >&2
@@ -59,28 +80,42 @@ for theme in $themes; do
 	echo "capturing factory under $theme"
 	# The factory has no --screenshot flag, so grab the root window after
 	# giving it time to map. import(1) targets the X display, not a window id.
-	xvfb-run -a --server-args="-screen 0 1280x1600x24" sh -c "
+	if xvfb-run -a --server-args="-screen 0 1280x1600x24" sh -c "
     GTK_THEME=$theme gtk3-widget-factory &
     factory_pid=\$!
     sleep 4
     $grab -window root '$png'
+    grab_status=\$?
     kill \$factory_pid 2>/dev/null || true
-  "
-	echo "wrote $png"
+    exit \$grab_status
+  " && not_blank "$png"; then
+		echo "wrote $png"
+	else
+		echo "preview:factory — capture FAILED for $theme (gtk3)." >&2
+		rm -f "$png"
+		exit 1
+	fi
 done
 
 if command -v gtk4-widget-factory >/dev/null 2>&1; then
 	for theme in $themes; do
 		png="$out/factory4-$theme.png"
 		echo "capturing gtk4 factory under $theme"
-		xvfb-run -a --server-args="-screen 0 1280x1600x24" sh -c "
+		if xvfb-run -a --server-args="-screen 0 1280x1600x24" sh -c "
       GTK_THEME=$theme gtk4-widget-factory &
       factory_pid=\$!
       sleep 4
       $grab -window root '$png'
+      grab_status=\$?
       kill \$factory_pid 2>/dev/null || true
-    "
-		echo "wrote $png"
+      exit \$grab_status
+    " && not_blank "$png"; then
+			echo "wrote $png"
+		else
+			echo "preview:factory — capture FAILED for $theme (gtk4)." >&2
+			rm -f "$png"
+			exit 1
+		fi
 	done
 else
 	echo "preview:factory — gtk4-widget-factory not installed, GTK4 pass skipped" >&2
