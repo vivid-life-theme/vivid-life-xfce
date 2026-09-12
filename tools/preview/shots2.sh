@@ -86,7 +86,7 @@ for flavor in $flavors; do
 
 		png="$out/gtk2-$theme.png"
 		echo "capturing gtk2 $theme"
-		if xvfb-run -a --server-args="-screen 0 760x820x24" sh -c "
+		if xvfb-run -a --server-args="-screen 0 760x960x24" sh -c "
       GTK2_RC_FILES='$rc' /usr/bin/python3 '$here/gallery2.py' \
         --theme '$theme' --screenshot '$png' &
       gallery_pid=\$!

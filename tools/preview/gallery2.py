@@ -186,16 +186,42 @@ def lists_section():
 def notebook_section():
     frame, box = section("Chrome")
     notebook = Gtk.Notebook()
-    for name in ("First", "Second", "Third"):
-        page = label(f"  {name} page  ")
-        notebook.append_page(page, Gtk.Label(label=name))
+
+    # A toggled button and a checked box ON a page, not just beside the
+    # notebook. gtkrc bindings are path-based, so "inside a notebook" is a
+    # genuinely different context: a rule written for tab labels can reach
+    # page content and mute it. That shipped once — the page-button label
+    # rendered at 1.03:1 on Dawn Red — and every contact sheet missed it,
+    # because this section held only plain labels. The control for these two
+    # is the identical pair in buttons_section() and inputs_section(), which
+    # sit outside any notebook; the two must match.
+    first = Gtk.VBox(spacing=6)
+    first.set_border_width(8)
+    toggled = Gtk.ToggleButton.new_with_label("Toggled on a page")
+    toggled.set_active(True)
+    first.pack_start(toggled, False, False, 0)
+    checked = Gtk.CheckButton.new_with_label("Checked on a page")
+    checked.set_active(True)
+    first.pack_start(checked, False, False, 0)
+    notebook.append_page(first, Gtk.Label(label="First"))
+
+    # A composite tab label — an hbox, not a bare label — sits one level
+    # deeper in the path than a plain tab. A binding narrow enough to spare
+    # page content can be too narrow to reach this, so both tab shapes have
+    # to be on the sheet for the pair of rules to be checkable at all.
+    composite = Gtk.HBox(spacing=4)
+    composite.pack_start(Gtk.Label(label="Composite"), False, False, 0)
+    composite.show_all()
+    notebook.append_page(label("  composite-tab page  "), composite)
+
+    notebook.append_page(label("  Third page  "), Gtk.Label(label="Third"))
     box.pack_start(notebook, False, False, 0)
     return frame
 
 
 def build_window():
     window = Gtk.Window(type=Gtk.WindowType.TOPLEVEL)
-    window.set_default_size(720, 760)
+    window.set_default_size(720, 900)
     outer = Gtk.VBox(spacing=8)
     outer.set_border_width(10)
     for build in (
