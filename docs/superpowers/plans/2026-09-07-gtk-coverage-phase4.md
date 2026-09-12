@@ -42,21 +42,24 @@ grep -nE '^frame|^switch|^scale' "$S/gtk4-default-dark.css"
 
 **GTK4 differs from GTK3 in ways that silently produce no-op rules.** These are measured, not assumed:
 
-| Concern         | GTK3 selector                  | GTK4 selector                                       | Consequence of using the GTK3 form                                             |
-| --------------- | ------------------------------ | --------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Frame border    | `frame > border`               | `frame`, `.frame`                                   | No `border` child node exists — the rule matches nothing, frames draw no edge  |
-| Expander widget | `expander`, `expander arrow`   | `expander-widget`, and `expander` **is** the arrow  | `expander { color: }` tints the arrow, not the widget; the widget rule is lost |
-| Tooltip fill    | `tooltip`                      | `tooltip.background`                                | Bare `tooltip` loses to `.background` on specificity; fill never lands         |
-| Menus           | `menu`, `menuitem`             | `popover.menu`, `modelbutton`                       | GtkMenu was removed; both selectors match nothing                              |
-| Menubar items   | `menubar > menuitem`           | `menubar > item`                                    | Menubar items stay unthemed                                                    |
-| Toolbars        | `toolbar`                      | `.toolbar` class only                               | GtkToolbar was removed; no `toolbar` element exists                            |
-| Popover fill    | `popover`                      | `popover > contents` (and `> arrow`)                | The fill lands on the shadow-carrying outer node, not the visible surface      |
-| Entry text      | `entry`                        | `entry`, plus `entry > text`                        | Caret and placeholder live on the `text` child                                 |
-| Entry focus     | `entry:focus`                  | `entry:focus-within`                                | Focus ring never appears                                                       |
-| Scale parts     | `scale trough`, `scale slider` | `scale > trough`, `scale > trough > slider`         | Descendant form still matches; the child form is what GTK4 itself uses         |
-| Text view       | `textview text`                | `textview > text`                                   | Descendant form still matches                                                  |
-| Tree expander   | `treeview expander`            | `treeview.view.expander`, `treeexpander > expander` | Arrow renders as an empty indent                                               |
-| Level bar       | `levelbar block`               | `levelbar > trough > block`                         | Descendant form still matches                                                  |
+| Concern         | GTK3 selector                   | GTK4 selector                                       | Consequence of using the GTK3 form                                             |
+| --------------- | ------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Frame border    | `frame > border`                | `frame`, `.frame`                                   | No `border` child node exists — the rule matches nothing, frames draw no edge  |
+| Expander widget | `expander`, `expander arrow`    | `expander-widget`, and `expander` **is** the arrow  | `expander { color: }` tints the arrow, not the widget; the widget rule is lost |
+| Tooltip fill    | `tooltip`                       | `tooltip.background`                                | Bare `tooltip` loses to `.background` on specificity; fill never lands         |
+| Menus           | `menu`, `menuitem`              | `popover.menu`, `modelbutton`                       | GtkMenu was removed; both selectors match nothing                              |
+| Menubar items   | `menubar > menuitem`            | `menubar > item`                                    | Menubar items stay unthemed                                                    |
+| Toolbars        | `toolbar`                       | `.toolbar` class only                               | GtkToolbar was removed; no `toolbar` element exists                            |
+| Popover fill    | `popover`                       | `popover > contents` (and `> arrow`)                | The fill lands on the shadow-carrying outer node, not the visible surface      |
+| Entry text      | `entry`                         | `entry`, plus `entry > text`                        | Caret and placeholder live on the `text` child                                 |
+| Entry focus     | `entry:focus`                   | `entry:focus-within`                                | Focus ring never appears                                                       |
+| Scale parts     | `scale trough`, `scale slider`  | `scale > trough`, `scale > trough > slider`         | Descendant form still matches; the child form is what GTK4 itself uses         |
+| Text view       | `textview text`                 | `textview > text`                                   | Descendant form still matches                                                  |
+| Tree expander   | `treeview expander`             | `treeview.view.expander`, `treeexpander > expander` | Arrow renders as an empty indent                                               |
+| Level bar       | `levelbar block`                | `levelbar > trough > block`                         | Descendant form still matches                                                  |
+| Sidebar rows    | `.sidebar`, `placessidebar`     | those **plus** `.navigation-sidebar` (GTK4-only)    | Modern GTK4/libadwaita sidebars — the most visible widget — stay unstyled      |
+| Filled level    | `block:not(.empty)`             | `block:not(.empty)` — **no `.filled` class exists** | `block.filled` matches nothing in GTK3 _or_ GTK4; mid-range bars draw no fill  |
+| Spinner         | icon-source + `:checked` toggle | identical in GTK4                                   | Colour alone yields an invisible box — `opacity: 0` is the upstream base       |
 
 **`background-image` composites over `background-color` — again.** Phase 2 established this for GTK3 paned handles. GTK4's default sets `paned > separator { background-image: image(#1b1b1b); }` explicitly, so `background-image: none` is required alongside the colour here too. This is verified in the extract, not carried over on faith.
 
@@ -2324,7 +2327,16 @@ levelbar > trough {
   min-height: ${ctx.space["2"]};
 }
 
-levelbar > trough > block.filled {
+/* The filled state is \`block:not(.empty)\`, NOT \`block.filled\` — there is no
+   .filled class in GTK4, nor in GTK3. Verified against GTK4's own
+   stylesheet, which uses \`block:not(.empty)\` for exactly this. (The GTK3
+   module in this repo carries the .filled mistake; recorded as a finding
+   for the next plan, out of scope here.)
+
+   This rule comes BEFORE .low/.high/.full deliberately: those are the same
+   specificity (0,1,1), so source order decides, and a block that is both
+   filled and high should read as high. */
+levelbar > trough > block:not(.empty) {
   background-color: @vl_accent;
   border-radius: ${ctx.radius.sm};
 }
@@ -2598,6 +2610,7 @@ Add to the selector array:
     "treeexpander",
     "paned > separator",
     ".sidebar",
+    ".navigation-sidebar",
     "notebook > header",
     "calendar",
     "expander-widget",
@@ -2783,7 +2796,13 @@ Create `tools/templates/gtk4/sidebar.mjs`:
 
 ```js
 export function render(ctx) {
-  return `.sidebar,
+  return `/* \`.navigation-sidebar\` is GTK4-only — 22 rules in GTK4's own sheet, zero
+   in GTK3 — and it is the class modern GTK4/libadwaita apps actually put on
+   sidebar rows. Without it the most visible widget in a modern GTK4 app falls
+   back to unstyled rows. Upstream writes \`> row\`; the descendant forms below
+   are a superset, so they match that and any wrapped variant. */
+.sidebar,
+.navigation-sidebar,
 placessidebar,
 stacksidebar {
   background-color: @vl_bg_soft;
@@ -2796,6 +2815,7 @@ stacksidebar {
    and only the inner nodes paint, so the surface goes on those and the
    scrolledwindow is cleared. */
 .sidebar scrolledwindow,
+.navigation-sidebar scrolledwindow,
 placessidebar scrolledwindow,
 stacksidebar scrolledwindow {
   background-color: transparent;
@@ -2803,6 +2823,8 @@ stacksidebar scrolledwindow {
 
 .sidebar viewport,
 .sidebar list,
+.navigation-sidebar viewport,
+.navigation-sidebar list,
 placessidebar viewport,
 placessidebar list,
 stacksidebar viewport,
@@ -2814,6 +2836,7 @@ stacksidebar list {
    selection is the only thing that fills a row. An accent stripe on the row
    instead would be 2.76:1 against bg_soft on Midnight Red. */
 .sidebar row,
+.navigation-sidebar row,
 placessidebar row,
 stacksidebar row {
   background-color: transparent;
@@ -3032,6 +3055,7 @@ treeview.view:selected,
 listview > row:selected,
 list > row:selected,
 .sidebar row:selected,
+.navigation-sidebar row:selected,
 placessidebar row:selected,
 stacksidebar row:selected,
 iconview:selected {
@@ -3622,14 +3646,18 @@ Output is expected to change here; `check` is confirming the committed files mat
 
 A gtkrc syntax error is not a crash — GTK2 writes a warning to stderr and ignores the rest of the file, so a broken theme looks like an unthemed one rather than like an error. Make the parser tell you:
 
+**The probe must force GTK to initialize, or it proves nothing.** `pinentry-gtk-2 --version` prints and exits before `gtk_init()` ever runs, so the rc file is never parsed and the check passes on _any_ input, including a file with a dangling assignment. Verified: an injected `bg[NORMAL] =` syntax error produced no warning under `--version`, and none under a bare `BYE` either — pinentry initializes GTK lazily, only when it actually has to draw. Driving it to a real dialog with `GETPIN` is what makes the parser run.
+
 ```bash
-./install.sh --all
-GTK2_RC_FILES="$HOME/.themes/vivid-life-midnight-blue/gtk-2.0/gtkrc" \
-  xvfb-run -a pinentry-gtk-2 --version 2>&1 \
+printf 'SETDESC probe\nGETPIN\n' \
+  | timeout 25 env GTK2_RC_FILES="$PWD/gtk-2.0/vivid-life-midnight-blue/gtkrc" \
+      xvfb-run -a pinentry-gtk-2 2>&1 \
   | grep -iE 'parse|unable|error|warning' || echo "no parser warnings"
 ```
 
 Expected: `no parser warnings`. Any parse error names the offending line number — fix it before continuing, because everything after that line was discarded.
+
+Both directions of this probe are verified: against the committed gtkrc it prints `no parser warnings`; against a copy with an injected syntax error it prints `<file>:47: error: unexpected character '}', expected string constant`. No `./install.sh --all` is needed — pointing `GTK2_RC_FILES` at the generated file in the repo tests the same content without writing 24 themes into `~/.themes`.
 
 - [ ] **Step 13: Commit**
 
@@ -3815,7 +3843,8 @@ The spec's unstyled-node list was written for GTK3. Check the GTK4 equivalents a
 ```bash
 for node in menubar '\.toolbar' popover modelbutton dropdown switch spinbutton \
             scale separator columnview listview treeexpander list paned \
-            'expander-widget' frame levelbar calendar tooltip; do
+            'expander-widget' frame levelbar calendar tooltip \
+            '\.navigation-sidebar'; do
   printf '%-18s %s\n' "$node" \
     "$(grep -cE "^[^ ].*$node" gtk-4.0/vivid-life-midnight-blue/gtk.css) rule(s)"
 done

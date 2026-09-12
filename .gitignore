@@ -11,3 +11,6 @@ node_modules/
 
 # Rendered widget-gallery screenshots
 tools/preview/out/
+
+# Python bytecode from running gallery4.py's checks
+tools/preview/__pycache__/
