@@ -8,6 +8,16 @@ export function render(ctx) {
 
 class "GtkNotebook" style "vivid-life-notebook"
 
+/* The class binding alone styles the notebook but not its tab text: GTK2
+   draws a non-current tab's label with a child GtkLabel, which matches
+   \`class "GtkWidget"\` and so took the default \`fg[ACTIVE]\` — accent-on —
+   over a light tab. On Noon that is near-white on white, leaving every
+   inactive tab unreadable. The muted colour above and the "inactive tab
+   label" contrast pair below were both already correct; the rule simply
+   never reached the widget that draws the text. Same mechanism as the
+   checked-toggle label in button.mjs. */
+widget_class "*<GtkNotebook>*<GtkLabel>" style "vivid-life-notebook"
+
 # bg[NORMAL] is the trough; the bar itself is drawn with the selected
 # colours, which is why an accent progress bar needs no separate key.
 style "vivid-life-progress" {
