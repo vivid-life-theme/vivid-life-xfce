@@ -64,7 +64,14 @@ fi
 
 for theme in $themes; do
 	for target in $targets; do
-		installed="$HOME/.themes/$theme/$target/gtk.css"
+		# ~/.themes first, matching GTK's lookup precedence, then the system
+		# directory — otherwise a theme installed only under /usr/share is
+		# reported "not installed" while GTK_THEME would load it perfectly well.
+		if [ -f "$HOME/.themes/$theme/$target/gtk.css" ]; then
+			installed="$HOME/.themes/$theme/$target/gtk.css"
+		else
+			installed="/usr/share/themes/$theme/$target/gtk.css"
+		fi
 		generated="$here/../../$target/$theme/gtk.css"
 		# The missing-install case must abort too, not slip past. GTK_THEME
 		# naming a theme GTK cannot resolve does not fail: GTK falls back to

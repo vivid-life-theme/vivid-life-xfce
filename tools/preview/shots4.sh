@@ -80,18 +80,31 @@ for flavor in $flavors; do
 		# days stale, and the screenshots looked entirely plausible. Abort rather
 		# than skip: a stale capture is worse than no capture, because it still
 		# looks like evidence.
-		installed="$HOME/.themes/$theme/gtk-4.0/gtk.css"
+		# Compare the stylesheet GTK will actually load, not a fixed guess at
+		# where it lives. The skip above accepts a theme present in EITHER
+		# location, so hardcoding ~/.themes meant a system-only install left
+		# `installed` pointing at nothing, the comparison silently skipped, and
+		# GTK_THEME loading a possibly stale /usr/share copy — the very failure
+		# this guard exists to prevent, reintroduced by the guard itself.
+		# ~/.themes first, matching GTK's own lookup precedence.
+		if [ -f "$HOME/.themes/$theme/gtk-4.0/gtk.css" ]; then
+			installed="$HOME/.themes/$theme/gtk-4.0/gtk.css"
+		else
+			installed="/usr/share/themes/$theme/gtk-4.0/gtk.css"
+		fi
 		generated="$here/../../gtk-4.0/$theme/gtk.css"
-		# See factory.sh: with either side missing the comparison below would
-		# silently skip rather than fail. The installed side can legitimately be
-		# absent here — the loop already skipped uninstalled themes above — but
-		# a missing generated file means the tree is broken.
 		if [ ! -f "$generated" ]; then
 			echo "preview:shots4 — ABORT: $generated does not exist." >&2
 			echo "  Nothing to compare the install against. Run: npm run generate" >&2
 			exit 1
 		fi
-		if [ -f "$installed" ] && ! cmp -s "$installed" "$generated"; then
+		if [ ! -f "$installed" ]; then
+			echo "preview:shots4 — ABORT: $theme has no gtk-4.0 stylesheet." >&2
+			echo "  Looked in ~/.themes and /usr/share/themes." >&2
+			echo "  Run: npm run generate && ./install.sh --all" >&2
+			exit 1
+		fi
+		if ! cmp -s "$installed" "$generated"; then
 			echo "preview:shots4 — ABORT: $theme is installed stale." >&2
 			echo "  installed: $installed" >&2
 			echo "  generated: $generated" >&2
