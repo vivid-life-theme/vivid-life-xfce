@@ -81,10 +81,26 @@ Requires Node.js >=20 and `rsvg-convert` (`librsvg2-bin` / `librsvg2-tools` / `l
 `npm run preview:shots` and `npm run preview:factory` need `xvfb` and
 ImageMagick; the GTK3 factory cross-check additionally needs
 `gtk-3-examples`. `npm run preview:shots4` and the factory's GTK4 pass need
-the GTK4 GObject bindings and `gtk-4-examples`. Every script skips with a
-message when a tool is missing, so a fresh clone never fails on them.
+the GTK4 GObject bindings and `gtk-4-examples`. `npm run preview:shots2` needs
+the GTK2 GObject bindings. Every script skips with a message when a tool is
+missing, so a fresh clone never fails on them.
 
-    sudo apt install xvfb imagemagick gtk-3-examples gir1.2-gtk-4.0 gtk-4-examples
+    sudo apt install xvfb imagemagick gtk-3-examples gir1.2-gtk-4.0 gtk-4-examples gir1.2-gtk-2.0
+
+There is no `gtk2-widget-factory` — GTK2 has no upstream widget gallery, and
+`pinentry-gtk-2` (the only GTK2 application on a current machine) renders a
+dialog, a label, an entry and two buttons. `tools/preview/gallery2.py` exists
+to cover everything else the GTK2 theme styles; without it, menus, notebooks,
+tree headers, toolbars and combo boxes would be verified only by the gtkrc
+parser accepting the file, which says nothing about whether a rule reaches a
+widget.
+
+**Reinstall before capturing.** `preview:shots4` and `preview:factory` select
+themes by name through `~/.themes`, so they render what is _installed_, not
+what is generated; `preview:shots2` selects by file but is guarded the same
+way. All three compare the two and abort rather than produce a stale capture
+that still looks like evidence. Run `npm run generate && ./install.sh --all`
+first.
 
 Two paths are hardcoded to the distribution build on purpose: `/usr/bin/python3`,
 because a Homebrew python3 earlier on `PATH` has no `gi` module, and
