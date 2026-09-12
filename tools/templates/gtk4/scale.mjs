@@ -18,18 +18,31 @@ scale > trough > highlight {
 
 /* The knob is the control boundary colour rather than the accent: it
    overlaps the accent highlight for most of the scale's travel, and accent
-   on accent has no edge at all. */
+   on accent has no edge at all.
+
+   The fill alone cannot carry the edge, because the knob sits on two
+   different backdrops — the sunk trough left of the value, the accent
+   highlight right of it — and no single token clears 3:1 against both on
+   all 24 combinations (the fill is 1.03:1 against the accent on Dawn Red).
+   So the edge is split, which is also what GTK4's own sheet does: the fill
+   delineates the knob against the unfilled trough (worst 3.20:1) and the
+   border delineates it against the highlight (worst 4.52:1). Both gated
+   below. */
 scale > trough > slider {
   background-color: @vl_control_border;
+  border: 1px solid @vl_bg;
   border-radius: ${ctx.radius.pill};
   min-width: ${ctx.space["4"]};
   min-height: ${ctx.space["4"]};
   margin: -${ctx.space["2"]};
 }
 
-scale > trough > slider:hover {
-  background-color: @vl_accent;
-}
+/* No hover fill. The knob took @vl_accent on hover, which erased it into the
+   highlight it sits on for most of the scale's travel — the exact failure the
+   comment above exists to prevent. GTK4's own sheet never accents the knob
+   either; it shifts a neutral gradient, which needs a hover shade this design
+   system does not define. Rather than invent one, the knob stays legible in
+   every state and gains no hover tint. */
 
 scale:disabled > trough > slider {
   background-color: @vl_fg_disabled;
@@ -58,6 +71,16 @@ export function contrastPairs(ctx) {
       label: "scale slider over its trough",
       fg: ctx.control.border,
       bg: ctx.surface.bg_sunk,
+      rule: "nontext",
+    },
+    {
+      // The pair that was missing. The knob sits on the accent highlight for
+      // most of the scale's travel, and only the unfilled side was declared —
+      // so nothing gated the backdrop the knob is actually on once the value
+      // moves off zero.
+      label: "scale slider edge over the accent highlight",
+      fg: ctx.surface.bg,
+      bg: ctx.accent,
       rule: "nontext",
     },
     {
