@@ -67,6 +67,13 @@ test("renderGtk4Css styles core widgets", () => {
     "paned > separator",
     ".sidebar",
     ".navigation-sidebar",
+    // Phase 5. GTK4 paints an infobar's fill on the nested box, not on the
+    // infobar node — `infobar.warning { background }` alone lands on a node
+    // that does not draw, the same trap as sidebars in phase 2.
+    "infobar.warning > revealer > box",
+    // Semantic text inside a selected row is promoted to accent_on, because
+    // 72 of 72 semantic-over-accent pairs fail 4.5:1 in their own colour.
+    ":selected .warning",
     "notebook > header",
     "calendar",
     "expander-widget",

@@ -896,6 +896,40 @@ expander-widget title:hover expander {
   color: @vl_accent;
 }
 
+infobar > revealer > box {
+  background-color: @vl_bg_soft;
+  color: @vl_fg;
+  border-bottom: 1px solid @vl_control_border;
+  padding: 8px;
+}
+
+infobar.info > revealer > box {
+  background-color: @vl_info;
+}
+
+infobar.warning > revealer > box {
+  background-color: @vl_warning;
+}
+
+infobar.error > revealer > box {
+  background-color: @vl_danger;
+}
+
+infobar.question > revealer > box {
+  background-color: @vl_accent;
+}
+
+infobar.info > revealer > box,
+infobar.info > revealer > box label,
+infobar.warning > revealer > box,
+infobar.warning > revealer > box label,
+infobar.error > revealer > box,
+infobar.error > revealer > box label,
+infobar.question > revealer > box,
+infobar.question > revealer > box label {
+  color: @vl_accent_on;
+}
+
 /* Composed last, and every widget it must beat is named explicitly.
    `:selected` alone uses no element or class selector, so it contributes
    zero specificity and loses to any rule that paints a background on a node
