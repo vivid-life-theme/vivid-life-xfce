@@ -178,16 +178,47 @@ def feedback_section():
     box.append(row(label("Spinner:"), spinner))
     for name in ("warning", "error", "success"):
         box.append(label(f"{name} text", name))
+
+    # GtkInfoBar — deprecated in 4.10, still present and still used by ported
+    # apps. GTK4 paints its fill on `infobar > revealer > box`, not on the
+    # infobar node, which is exactly the kind of structural difference a
+    # sheet has to show rather than a stylesheet diff has to argue.
+    for message_type, text in (
+        (Gtk.MessageType.INFO, "Informational message"),
+        (Gtk.MessageType.WARNING, "Warning message"),
+        (Gtk.MessageType.ERROR, "Error message"),
+        (Gtk.MessageType.QUESTION, "Question message"),
+    ):
+        bar = Gtk.InfoBar()
+        bar.set_message_type(message_type)
+        bar.add_child(Gtk.Label(label=text, xalign=0))
+        box.append(bar)
     return frame
 
 
 def lists_section():
     frame, box = section("Lists")
     listbox = Gtk.ListBox()
+    # MULTIPLE so both the plain selected row and the semantic one below stay
+    # selected on the same sheet; the default SINGLE would drop the first.
+    listbox.set_selection_mode(Gtk.SelectionMode.MULTIPLE)
     for index, caption in enumerate(("First row", "Second row", "Third row")):
         listbox.append(Gtk.Label(label=caption, xalign=0))
         if index == 1:
             listbox.select_row(listbox.get_row_at_index(1))
+    # A selected row carrying semantic text. Semantic and accent tokens are
+    # both chosen against the background, so semantic text in its own colour
+    # over the selection fill fails 4.5:1 on all 72 combination/role pairs;
+    # phase 5 promotes it to accent_on. Without this row on the sheet that
+    # rule is unverifiable by capture — the same gap that let three earlier
+    # context defects ship.
+    warned = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+    warned.append(Gtk.Label(label="Selected row with", xalign=0))
+    warned.append(label("warning", "warning"))
+    warned.append(label("error", "error"))
+    warned.append(label("success", "success"))
+    listbox.append(warned)
+    listbox.select_row(listbox.get_row_at_index(3))
     box.append(listbox)
 
     # A tree expander is the node phase 2 proved needs an explicit icon

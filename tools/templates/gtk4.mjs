@@ -17,6 +17,7 @@ import * as view from "./gtk4/view.mjs";
 import * as paned from "./gtk4/paned.mjs";
 import * as sidebar from "./gtk4/sidebar.mjs";
 import * as misc from "./gtk4/misc.mjs";
+import * as infobar from "./gtk4/infobar.mjs";
 import * as selection from "./gtk4/selection.mjs";
 
 // Cascade order is part of the contract, same as gtk3.mjs: _tokens first so
@@ -44,6 +45,7 @@ export const GTK4_MODULES = [
   progress,
   tooltip,
   misc,
+  infobar,
   selection,
 ];
 

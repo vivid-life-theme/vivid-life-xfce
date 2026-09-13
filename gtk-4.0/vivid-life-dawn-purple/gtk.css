@@ -896,6 +896,40 @@ expander-widget title:hover expander {
   color: @vl_accent;
 }
 
+infobar > revealer > box {
+  background-color: @vl_bg_soft;
+  color: @vl_fg;
+  border-bottom: 1px solid @vl_control_border;
+  padding: 8px;
+}
+
+infobar.info > revealer > box {
+  background-color: @vl_info;
+}
+
+infobar.warning > revealer > box {
+  background-color: @vl_warning;
+}
+
+infobar.error > revealer > box {
+  background-color: @vl_danger;
+}
+
+infobar.question > revealer > box {
+  background-color: @vl_accent;
+}
+
+infobar.info > revealer > box,
+infobar.info > revealer > box label,
+infobar.warning > revealer > box,
+infobar.warning > revealer > box label,
+infobar.error > revealer > box,
+infobar.error > revealer > box label,
+infobar.question > revealer > box,
+infobar.question > revealer > box label {
+  color: @vl_accent_on;
+}
+
 /* Composed last, and every widget it must beat is named explicitly.
    `:selected` alone uses no element or class selector, so it contributes
    zero specificity and loses to any rule that paints a background on a node
@@ -921,12 +955,20 @@ iconview:selected {
   color: @vl_accent_on;
 }
 
-/* Deliberately narrow. The broad form — every label under a selected row —
-   also flattens .warning/.error/.success text inside that row, which is the
-   defect the GTK3 port carried until phase 2. Only the dimmed secondary
-   labels need promoting, because they are the ones that would otherwise
-   stay muted against an accent fill. */
+/* Scoped, not broad: only labels whose own colour would otherwise fight the
+   accent fill. That now includes semantic text, and phase 2's reason for
+   excluding it was measured and found wrong — a semantic token and an
+   accent token are both picked to contrast with the BACKGROUND, so they sit
+   in the same luminance band and cannot reliably contrast with each other.
+   72 of 72 semantic-over-accent pairs fail 4.5:1 across the 24 combinations,
+   worst 1.01:1, and design-system 0.10.0 removing the five identical cases
+   left the count at 72. Inside a selection the row's state carries the
+   meaning; the text has to be readable first. (0,2,0) beats the bare
+   .warning class at (0,1,0) regardless of order. */
 :selected .dim-label,
-:selected .subtitle {
+:selected .subtitle,
+:selected .warning,
+:selected .error,
+:selected .success {
   color: @vl_accent_on;
 }

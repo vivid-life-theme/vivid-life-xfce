@@ -233,6 +233,19 @@ def lists_section():
         listbox.insert(line, -1)
         if index == 0:
             listbox.select_row(listbox.get_row_at_index(0))
+    # A selected row carrying semantic text. In its own colour it fails 4.5:1
+    # over the selection fill on all 72 combination/role pairs, so phase 5
+    # promotes it to accent_on — a rule that is unverifiable by capture until
+    # a row like this exists on the sheet.
+    listbox.set_selection_mode(Gtk.SelectionMode.MULTIPLE)
+    warned = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+    warned.set_border_width(6)
+    warned.pack_start(label("Selected row with"), False, False, 0)
+    for name in ("warning", "error", "success"):
+        warned.pack_start(label(name, name), False, False, 0)
+    listbox.insert(warned, -1)
+    listbox.select_row(listbox.get_row_at_index(0))
+    listbox.select_row(listbox.get_row_at_index(2))
     box.pack_start(listbox, False, False, 0)
 
     icon_store = Gtk.ListStore(str)

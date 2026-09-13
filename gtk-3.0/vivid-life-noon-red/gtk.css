@@ -527,7 +527,14 @@ levelbar trough {
   min-height: 8px;
 }
 
-levelbar block.filled {
+/* `block:not(.empty)`, NOT `block.filled`: there is no .filled class in
+   GTK3 (nor in GTK4) — this rule matched nothing from phase 3 until phase 5,
+   so a mid-range level bar drew no fill at all while the 15 and 90 bars in
+   the review looked right via .low and .high. GTK3's own Adwaita uses
+   exactly this form. It stays BEFORE .low/.high/.full, which share its
+   (0,1,1) specificity, so a block that is both filled and high reads as
+   high by source order. */
+levelbar block:not(.empty) {
   background-color: @vl_accent;
   border-radius: 4px;
 }
@@ -548,10 +555,41 @@ levelbar block.empty {
   background-color: transparent;
 }
 
+/* A theme replaces Adwaita wholesale, and Adwaita is what makes a spinner
+   visible at all: the glyph comes from -gtk-icon-source, visibility from an
+   opacity toggle on :checked (GTK sets :checked while spinning), and the
+   spin from a top-level @keyframes block. Colour and size alone — which is
+   all this rule had from phase 3 until phase 5 — rendered an invisible box.
+   Same fix as gtk4/progress.mjs, where it is capture-verified; GTK3's own
+   sheet defines the spinner identically save for the keyframes property. process-working-symbolic is in
+   GTK's own icons/, so naming it adds no icon dependency. */
+@keyframes spin {
+  to {
+    /* -gtk-icon-transform, not transform: GTK3's CSS engine has no
+       `transform` property at all and rejects the GTK4 form with "No
+       property named 'transform'", which would leave the spinner visible
+       but static. This is the one line that differs from gtk4/progress.mjs;
+       GTK3's own Adwaita writes exactly this. */
+    -gtk-icon-transform: rotate(1turn);
+  }
+}
+
 spinner {
   color: @vl_accent;
   min-width: 16px;
   min-height: 16px;
+  background: none;
+  opacity: 0;
+  -gtk-icon-source: -gtk-icontheme("process-working-symbolic");
+}
+
+spinner:checked {
+  opacity: 1;
+  animation: spin 1s linear infinite;
+}
+
+spinner:checked:disabled {
+  opacity: 0.5;
 }
 
 tooltip {
@@ -630,12 +668,23 @@ selection {
 /* Subtitle/secondary labels (e.g. the "Gtk3, Gtk2, Xfwm4" line under a theme
    name) carry .dim-label's baked-in opacity: 0.55, which does not follow the
    row's selected state — so they stay washed out against the accent fill.
-   Scoped to those two classes on purpose: the broader *:selected label rule
-   this replaces also recoloured .warning/.error/.success text inside a
-   selected row, flattening semantic colours that are meant to stay
-   meaningful when the row is selected. */
+
+   Semantic text is promoted too, and phase 2's reasoning for leaving it out
+   was measured and found wrong. It argued the semantic hue should "stay
+   meaningful when the row is selected" — but a semantic token and an accent
+   token are both chosen to contrast with the BACKGROUND, so they sit in the
+   same luminance band and cannot reliably contrast with each other. Across
+   all 24 combinations and three roles, 72 of 72 pairs fail 4.5:1 with the
+   text in its own colour, the worst at 1.01:1 — and no token change can fix
+   that (design-system 0.10.0 removed the five *identical* cases and the
+   count stayed 72). Inside a selection the row's state carries the meaning;
+   the text has to be readable first. Still scoped: not every label, only
+   those whose own colour would otherwise fight the fill. */
 *:selected .dim-label,
-*:selected .subtitle {
+*:selected .subtitle,
+*:selected .warning,
+*:selected .error,
+*:selected .success {
   color: @vl_accent_on;
   opacity: 1;
 }

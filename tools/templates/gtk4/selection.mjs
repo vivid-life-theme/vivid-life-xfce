@@ -24,19 +24,36 @@ iconview:selected {
   color: @vl_accent_on;
 }
 
-/* Deliberately narrow. The broad form — every label under a selected row —
-   also flattens .warning/.error/.success text inside that row, which is the
-   defect the GTK3 port carried until phase 2. Only the dimmed secondary
-   labels need promoting, because they are the ones that would otherwise
-   stay muted against an accent fill. */
+/* Scoped, not broad: only labels whose own colour would otherwise fight the
+   accent fill. That now includes semantic text, and phase 2's reason for
+   excluding it was measured and found wrong — a semantic token and an
+   accent token are both picked to contrast with the BACKGROUND, so they sit
+   in the same luminance band and cannot reliably contrast with each other.
+   72 of 72 semantic-over-accent pairs fail 4.5:1 across the 24 combinations,
+   worst 1.01:1, and design-system 0.10.0 removing the five identical cases
+   left the count at 72. Inside a selection the row's state carries the
+   meaning; the text has to be readable first. (0,2,0) beats the bare
+   .warning class at (0,1,0) regardless of order. */
 :selected .dim-label,
-:selected .subtitle {
+:selected .subtitle,
+:selected .warning,
+:selected .error,
+:selected .success {
   color: @vl_accent_on;
 }`;
 }
 
 export function contrastPairs(ctx) {
   return [
+    {
+      // The pair that was never declared: semantic text over the selection
+      // fill. Declared now that the text is promoted to accent_on — in its
+      // own colour it failed 4.5:1 on 72 of 72 combinations.
+      label: "semantic text inside a selected row",
+      fg: ctx.accentOn,
+      bg: ctx.accent,
+      rule: "text",
+    },
     {
       label: "selected row label",
       fg: ctx.accentOn,
