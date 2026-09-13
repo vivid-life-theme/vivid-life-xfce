@@ -269,6 +269,7 @@ notebook > header tab:checked {
 }
 
 treeview.view,
+list,
 iconview {
   background-color: @vl_bg_sunk;
   color: @vl_fg;
@@ -318,8 +319,13 @@ treeview.view expander:checked {
 }
 
 /* Rows stay transparent so the view's surface shows through and the
-   *:selected fill is the only thing that paints a row. */
-list,
+   *:selected fill is the only thing that paints a row. Note `list` itself is
+   NOT here — it is a surface, not a row wrapper, and belongs in the sunk group
+   above. Grouping it here left a GtkListBox with no background at all, so a
+   list beside a tree view sat on two different surfaces: Whisker Menu's two
+   panes measured bg_sunk (tree view) against bg (list box), plainly visible on
+   Noon. The GTK4 module had the identical defect, fixed in phase 4; this is
+   the GTK3 twin, left behind while gtk-3.0/ was frozen. */
 list row {
   background-color: transparent;
 }
@@ -451,6 +457,27 @@ popover separator {
   background-color: @vl_border;
 }
 
+/* Whisker Menu is the popup that produced the original two-tone report, and
+   it is neither a `menu` nor a `popover`: it is a GtkWindow whose widget
+   NAME is whiskermenu-window (probed — `#whiskermenu-window` matches,
+   `.whiskermenu-window` does not), holding a tree view of apps beside a
+   column of GtkToggleButtons classed .category-button. The phase-2 gallery
+   modelled it as two list boxes, which is why phase 2's fix and its
+   verification both missed the real widgets. Measured on the live plugin:
+   the tree view sat on bg_sunk, the button column on bg — the spec's rule
+   for this popup is every pane or none. So the window takes the popup
+   surface like menu and popover do, and its tree view goes transparent so
+   both panes show that one surface. */
+#whiskermenu-window {
+  background-color: @vl_bg_overlay;
+  color: @vl_fg;
+  border: 1px solid @vl_control_border;
+}
+
+#whiskermenu-window treeview.view {
+  background-color: transparent;
+}
+
 headerbar {
   background-color: @vl_bg_soft;
   color: @vl_fg;
@@ -489,6 +516,19 @@ toolbar button:hover,
 button.flat:hover {
   background-color: alpha(@vl_accent, 0.2);
   border-color: @vl_control_border;
+}
+
+/* A checked flat button must get its fill back. `button:checked` (button.mjs)
+   and `button.flat` (here) are both (0,1,1), and this module is composed
+   later — so source order handed a checked flat button transparency while
+   leaving `color: accent_on` in place: the text meant for an accent fill,
+   drawn on whatever surface sits behind. Whisker Menu's active category
+   rendered #171717 on #404040 for exactly this reason. Same mechanism as
+   entry:disabled needing `> text` and GTK2's fg[ACTIVE] on flat toggles —
+   a colour chosen for a fill that never arrived. (0,2,1) beats both. */
+button.flat:checked {
+  background-color: @vl_accent;
+  color: @vl_accent_on;
 }
 
 scrollbar {

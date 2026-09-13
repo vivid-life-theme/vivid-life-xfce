@@ -50,6 +50,27 @@ popover.background {
 
 popover separator {
   background-color: @vl_border;
+}
+
+/* Whisker Menu is the popup that produced the original two-tone report, and
+   it is neither a \`menu\` nor a \`popover\`: it is a GtkWindow whose widget
+   NAME is whiskermenu-window (probed — \`#whiskermenu-window\` matches,
+   \`.whiskermenu-window\` does not), holding a tree view of apps beside a
+   column of GtkToggleButtons classed .category-button. The phase-2 gallery
+   modelled it as two list boxes, which is why phase 2's fix and its
+   verification both missed the real widgets. Measured on the live plugin:
+   the tree view sat on bg_sunk, the button column on bg — the spec's rule
+   for this popup is every pane or none. So the window takes the popup
+   surface like menu and popover do, and its tree view goes transparent so
+   both panes show that one surface. */
+#whiskermenu-window {
+  background-color: @vl_bg_overlay;
+  color: @vl_fg;
+  border: 1px solid @vl_control_border;
+}
+
+#whiskermenu-window treeview.view {
+  background-color: transparent;
 }`;
 }
 

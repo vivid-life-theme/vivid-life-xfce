@@ -58,6 +58,13 @@ test("renderGtk3Css styles core widgets", () => {
     "list row",
     "menubar",
     "popover",
+    // The real Whisker Menu window, by widget name — not the two-listbox
+    // stand-in the gallery used to model it.
+    "#whiskermenu-window",
+    // A checked flat button: .flat (0,1,1) is composed after :checked (0,1,1)
+    // and strips the accent fill by source order while leaving accent_on
+    // text behind — fill-text on no fill. Whisker's active category showed it.
+    "button.flat:checked",
     "toolbar",
     "actionbar",
     "paned",
@@ -109,4 +116,27 @@ test("every composed module exports a render function", () => {
   for (const module of GTK3_MODULES) {
     assert.equal(typeof module.render, "function");
   }
+});
+
+/* A GtkListBox is a surface, not a row wrapper. Grouping bare `list` into the
+   "rows stay transparent" rule left it with no background at all, so a list
+   beside a tree view rendered on two different surfaces — Whisker Menu's two
+   panes, measured at bg_sunk vs bg. The same defect was fixed on GTK4 in
+   phase 4 and never carried here. This asserts `list` sits in the sunk-surface
+   rule and NOT in the transparent one, which a presence check cannot tell. */
+test("a GTK3 list box gets the sunk surface, not transparency", () => {
+  const css = renderGtk3Css(
+    flavorBlock("noon"),
+    resolveAccent("noon", "red"),
+    accentOn("noon"),
+  );
+  const sunkRule = css.match(/^treeview\.view,[^{]*\{[^}]*\}/m)?.[0] ?? "";
+  assert.ok(
+    /^list,$/m.test(sunkRule) || /^list \{/m.test(sunkRule),
+    "`list` must be a selector of the bg_sunk surface rule",
+  );
+  assert.ok(
+    !/^list,\nlist row \{\n\s*background-color: transparent/m.test(css),
+    "bare `list` must not be in the transparent-rows rule",
+  );
 });

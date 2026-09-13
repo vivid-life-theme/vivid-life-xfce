@@ -74,6 +74,9 @@ test("renderGtk4Css styles core widgets", () => {
     // Semantic text inside a selected row is promoted to accent_on, because
     // 72 of 72 semantic-over-accent pairs fail 4.5:1 in their own colour.
     ":selected .warning",
+    // Same source-order trap as GTK3: .flat strips the checked fill, keeps
+    // the fill's text colour.
+    "button.flat:checked",
     "notebook > header",
     "calendar",
     "expander-widget",
