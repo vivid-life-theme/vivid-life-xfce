@@ -399,13 +399,21 @@ def feedback_section():
 def xfce_section():
     """The Whisker Menu layout — a two-pane popup, categories beside apps.
 
-    This is where the two-tone bug was reported: one pane painting
-    bg_overlay and the other not.
+    This is where the two-tone bug was reported. The FIRST version of this
+    section modelled it as two GtkListBoxes in a .menu box, and phase 2 fixed
+    and "verified" against that — but it is not what the plugin builds.
+    Measured on the live plugin: a GtkTreeView of apps beside a column of
+    GtkToggleButtons classed .category-button, inside a GtkWindow whose widget
+    NAME is whiskermenu-window (probed: #whiskermenu-window matches,
+    .whiskermenu-window does not). Under the old model the real menu was still
+    two-tone — bg_sunk tree view against bg button column — while the sheet
+    looked fine. A gallery is evidence only for the widgets it instantiates,
+    so this now instantiates the real ones.
     """
     frame, box = section("Xfce — Whisker Menu layout")
 
     popup = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-    popup.get_style_context().add_class("menu")
+    popup.set_name("whiskermenu-window")
     popup.set_border_width(6)
 
     search = Gtk.Entry()
@@ -414,19 +422,29 @@ def xfce_section():
 
     panes = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
 
-    categories = Gtk.ListBox()
+    # Categories: flat toggle buttons, the checked one being the active
+    # category. A checked flat button is where the fill-text-on-no-fill
+    # defect lived (button.flat stripped :checked's fill by source order).
+    categories = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
     categories.set_size_request(140, -1)
     for index, name in enumerate(("Favorites", "Settings", "System", "Development")):
-        entry = label(f"  {name}")
-        categories.insert(entry, -1)
+        button = Gtk.ToggleButton(label=name)
+        button.get_style_context().add_class("flat")
+        button.get_style_context().add_class("category-button")
         if index == 1:
-            categories.select_row(categories.get_row_at_index(1))
+            button.set_active(True)
+        categories.pack_start(button, False, False, 0)
     panes.pack_start(categories, False, False, 0)
 
-    apps = Gtk.ListBox()
-    apps.set_size_request(220, -1)
+    # Apps: a real tree view, which is a .view and therefore sinks — the
+    # whole point of the #whiskermenu-window rule is to make it not sink here.
+    store = Gtk.ListStore(str)
     for name in ("Appearance", "Window Manager", "Panel", "Display"):
-        apps.insert(label(f"  {name}"), -1)
+        store.append([name])
+    apps = Gtk.TreeView(model=store)
+    apps.set_headers_visible(False)
+    apps.append_column(Gtk.TreeViewColumn("", Gtk.CellRendererText(), text=0))
+    apps.set_size_request(220, -1)
     panes.pack_start(apps, True, True, 0)
 
     popup.pack_start(panes, False, False, 0)
