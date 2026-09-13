@@ -561,11 +561,16 @@ levelbar block.empty {
    spin from a top-level @keyframes block. Colour and size alone — which is
    all this rule had from phase 3 until phase 5 — rendered an invisible box.
    Same fix as gtk4/progress.mjs, where it is capture-verified; GTK3's own
-   sheet defines the spinner identically. process-working-symbolic is in
+   sheet defines the spinner identically save for the keyframes property. process-working-symbolic is in
    GTK's own icons/, so naming it adds no icon dependency. */
 @keyframes spin {
   to {
-    transform: rotate(1turn);
+    /* -gtk-icon-transform, not transform: GTK3's CSS engine has no
+       `transform` property at all and rejects the GTK4 form with "No
+       property named 'transform'", which would leave the spinner visible
+       but static. This is the one line that differs from gtk4/progress.mjs;
+       GTK3's own Adwaita writes exactly this. */
+    -gtk-icon-transform: rotate(1turn);
   }
 }
 
