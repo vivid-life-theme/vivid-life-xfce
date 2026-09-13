@@ -49,9 +49,9 @@ test("resolveAccent matches the documented midnight/purple shade (300)", () => {
   assert.equal(resolveAccent("midnight", "purple"), "#d8b4fe");
 });
 
-test("resolveAccent matches the documented dawn/red shade (900)", () => {
-  // accent_shade.dawn.red === 900 per tokens.json
-  assert.equal(resolveAccent("dawn", "red"), "#7f1d1d");
+test("resolveAccent matches the documented dawn/red shade (800)", () => {
+  // accent_shade.dawn.red === 800 per tokens.json
+  assert.equal(resolveAccent("dawn", "red"), "#991b1b");
 });
 
 test("accentOn is dark text for dark flavors, light text for light flavors", () => {

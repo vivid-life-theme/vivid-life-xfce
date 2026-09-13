@@ -20,7 +20,7 @@
     "preview:shots2": "sh tools/preview/shots2.sh"
   },
   "dependencies": {
-    "@vivid-life-theme/design-system": "0.9.0"
+    "@vivid-life-theme/design-system": "0.10.0"
   },
   "license": "MIT"
 }
