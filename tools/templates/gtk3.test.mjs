@@ -65,6 +65,16 @@ test("renderGtk3Css styles core widgets", () => {
     ".linked",
     "calendar",
     "expander",
+    // Phase 5. `block.filled` matched nothing — no such class exists in GTK3
+    // or GTK4 — so a mid-range level bar drew no fill at all for two phases.
+    "levelbar block:not(.empty)",
+    // And the spinner was an invisible box: colour and size only, when GTK's
+    // own sheet makes it visible via opacity toggled by :checked.
+    "spinner:checked",
+    "@keyframes spin",
+    // Semantic text inside a selected row: 72 of 72 pairs fail 4.5:1 in its
+    // own colour, so it is promoted to accent_on like .dim-label already is.
+    "*:selected .warning",
   ]) {
     assert.ok(css.includes(selector), `expected CSS to style ${selector}`);
   }
