@@ -2,6 +2,7 @@ import { composite } from "../../lib/contrast.mjs";
 
 export function render(ctx) {
   return `treeview.view,
+list,
 iconview {
   background-color: @vl_bg_sunk;
   color: @vl_fg;
@@ -51,8 +52,13 @@ treeview.view expander:checked {
 }
 
 /* Rows stay transparent so the view's surface shows through and the
-   *:selected fill is the only thing that paints a row. */
-list,
+   *:selected fill is the only thing that paints a row. Note \`list\` itself is
+   NOT here — it is a surface, not a row wrapper, and belongs in the sunk group
+   above. Grouping it here left a GtkListBox with no background at all, so a
+   list beside a tree view sat on two different surfaces: Whisker Menu's two
+   panes measured bg_sunk (tree view) against bg (list box), plainly visible on
+   Noon. The GTK4 module had the identical defect, fixed in phase 4; this is
+   the GTK3 twin, left behind while gtk-3.0/ was frozen. */
 list row {
   background-color: transparent;
 }
@@ -100,9 +106,12 @@ export function contrastPairs(ctx) {
       rule: "nontext",
     },
     {
+      // bg_sunk, not bg: the hovered row sits on the list's own surface,
+      // which is sunk now that `list` has one. GTK4's pair had the same
+      // wrong base until phase 4.
       label: "list row hover label",
       fg: ctx.text.fg,
-      bg: composite(ctx.surface.bg, `${ctx.accent}33`),
+      bg: composite(ctx.surface.bg_sunk, `${ctx.accent}33`),
       rule: "text",
     },
     {

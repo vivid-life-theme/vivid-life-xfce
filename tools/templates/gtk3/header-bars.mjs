@@ -39,6 +39,19 @@ toolbar button:hover,
 button.flat:hover {
   background-color: alpha(@vl_accent, 0.2);
   border-color: @vl_control_border;
+}
+
+/* A checked flat button must get its fill back. \`button:checked\` (button.mjs)
+   and \`button.flat\` (here) are both (0,1,1), and this module is composed
+   later — so source order handed a checked flat button transparency while
+   leaving \`color: accent_on\` in place: the text meant for an accent fill,
+   drawn on whatever surface sits behind. Whisker Menu's active category
+   rendered #171717 on #404040 for exactly this reason. Same mechanism as
+   entry:disabled needing \`> text\` and GTK2's fg[ACTIVE] on flat toggles —
+   a colour chosen for a fill that never arrived. (0,2,1) beats both. */
+button.flat:checked {
+  background-color: @vl_accent;
+  color: @vl_accent_on;
 }`;
 }
 
