@@ -142,7 +142,7 @@ Both shipped in phase 3 (`eb2c3b7`) and were found while porting the same widget
 - **`levelbar block.filled` matches nothing.** `tools/templates/gtk3/progress.mjs:21`. There is no `.filled` class in GTK3 **or** GTK4; both use `block:not(.empty)`. A mid-range GTK3 level bar therefore draws no fill at all — only `.low`/`.high`/`.full` blocks paint. Phase 2's review looked at bars at 15/50/90; the 15 and 90 filled via `.low`/`.high`, which is likely why the middle one's absence went unnoticed.
 - **The GTK3 spinner is invisible.** `tools/templates/gtk3/progress.mjs:42` sets colour and size only. GTK3's Adwaita defines the spinner exactly as GTK4 does — `opacity: 0` plus `-gtk-icon-source` and a `:checked` animation — and a theme replaces that wholesale, so ours renders an empty box. The GTK4 fix (`3021dc7`) is the template to copy.
 
-### Open, found in phase 4 — five semantic tokens are identical to their accent
+### Resolved in design-system 0.10.0 — five semantic tokens were identical to their accent
 
 On **5 of the 72 flavour × variant × kind combinations the semantic token and the accent are the same colour**, so the states they distinguish are not distinguishable at all:
 
@@ -157,6 +157,8 @@ On **5 of the 72 flavour × variant × kind combinations the semantic token and 
 A destructive button is then indistinguishable from a suggested one, a `.high` level-bar block from a plain accent fill, and a warning state from an ordinary accent. This is also the root cause of the worst case in the section below — Dawn Red `.error` at 1.00:1 on a selected row is this collision, not a separate defect.
 
 **Not fixable in this port.** The non-goals forbid redefining upstream token values here, and the fix belongs in `@vivid-life-theme/design-system`: either separate the semantic ramps from the accent ramps, or have the accent-shade table skip a shade that collides. Once upstream guarantees the invariant, the generator should assert it and fail rather than emit a theme where two states render identically. Found by CodeRabbit on PR #3; the 5 combinations above are measured, not estimated.
+
+**Fixed upstream** in `@vivid-life-theme/design-system` 0.10.0 (spec: `docs/superpowers/specs/2026-09-13-semantic-accent-collision-design.md` there). The five colliding accents moved from shade 900 to 800; the semantics stayed — moving them would have failed upstream's own semantic-vs-surface gate on `bg_sunk`. A gate in upstream's `check()` now fails the build on any `danger`/`warning`/`success` role sharing a shade with its hue's accent, with a cross-check so a role rename or addition cannot silently escape it. Re-measured here after the pin bump: **0 collisions** among those three roles. A sixth match — `midnight-blue`, where `info` equals the accent — is accepted upstream as conventional and is a named exemption there, not an oversight.
 
 ### Open, found in phase 4 — semantic text on a selected row (GTK3 and GTK4)
 
