@@ -112,15 +112,15 @@ export function renderAll(outputRoot, options = {}) {
     for (const [target, render] of [
       [
         "gtk-2.0",
-        () => ["gtkrc", renderGtk2Gtkrc(block, accentHex, accentOnHex)],
+        () => ["gtkrc", renderGtk2Gtkrc(block, accentHex, accentOnHex, variant)],
       ],
       [
         "gtk-3.0",
-        () => ["gtk.css", renderGtk3Css(block, accentHex, accentOnHex)],
+        () => ["gtk.css", renderGtk3Css(block, accentHex, accentOnHex, variant)],
       ],
       [
         "gtk-4.0",
-        () => ["gtk.css", renderGtk4Css(block, accentHex, accentOnHex)],
+        () => ["gtk.css", renderGtk4Css(block, accentHex, accentOnHex, variant)],
       ],
       [
         INDEX_DIR,

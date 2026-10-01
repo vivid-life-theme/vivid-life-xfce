@@ -12,6 +12,7 @@ test("renderGtk2Gtkrc embeds surface and accent colors", () => {
     noon,
     resolveAccent("noon", "red"),
     accentOn("noon"),
+    "red",
   );
   assert.match(gtkrc, /bg\[NORMAL\]\s+= "#f5f5f5"/);
   assert.match(gtkrc, /bg\[SELECTED\]\s+= "#b91c1c"/);
@@ -24,6 +25,7 @@ test("renderGtk2Gtkrc declares the default widget class binding", () => {
     noon,
     resolveAccent("noon", "red"),
     accentOn("noon"),
+    "red",
   );
   assert.match(gtkrc, /class "GtkWidget" style "vivid-life-default"/);
   assert.match(gtkrc, /class "GtkButton" style "vivid-life-button"/);
@@ -62,6 +64,7 @@ test("every style is defined before the binding that references it", () => {
     flavorBlock("noon"),
     resolveAccent("noon", "red"),
     accentOn("noon"),
+    "red",
   );
   const defined = new Set();
   let bindings = 0;
@@ -108,6 +111,7 @@ test("renderGtk2Gtkrc binds the widget classes Xfce renders", () => {
     flavorBlock("midnight"),
     resolveAccent("midnight", "blue"),
     accentOn("midnight"),
+    "blue",
   );
   for (const binding of [
     'class "GtkWidget"',
@@ -136,6 +140,7 @@ test("renderGtk2Gtkrc sets the full colour scheme", () => {
     flavorBlock("midnight"),
     resolveAccent("midnight", "blue"),
     accentOn("midnight"),
+    "blue",
   );
   for (const key of [
     "bg_color",

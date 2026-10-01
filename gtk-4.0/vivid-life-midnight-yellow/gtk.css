@@ -13,12 +13,12 @@
 @define-color vl_bg_overlay #404040;
 @define-color vl_fg #f5f5f5;
 @define-color vl_fg_muted #d4d4d4;
-@define-color vl_fg_subtle #737373;
+@define-color vl_fg_subtle #999999;
 @define-color vl_fg_disabled #525252;
 @define-color vl_border #404040;
 @define-color vl_border_subtle #262626;
 @define-color vl_border_strong #737373;
-@define-color vl_control_border #d4d4d4;
+@define-color vl_control_border #8f8f8f;
 @define-color vl_accent #eab308;
 @define-color vl_accent_on #171717;
 @define-color vl_success #bef264;

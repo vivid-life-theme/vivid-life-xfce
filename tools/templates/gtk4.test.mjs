@@ -12,6 +12,7 @@ test("renderGtk4Css documents the libadwaita limitation", () => {
     twilight,
     resolveAccent("twilight", "green"),
     accentOn("twilight"),
+    "green",
   );
   assert.match(css, /libadwaita/i);
 });
@@ -22,6 +23,7 @@ test("renderGtk4Css embeds the flavor and accent colors", () => {
     twilight,
     resolveAccent("twilight", "green"),
     accentOn("twilight"),
+    "green",
   );
   assert.match(css, /@define-color vl_bg #404040;/);
   assert.match(css, /@define-color vl_accent #84cc16;/);
@@ -33,6 +35,7 @@ test("renderGtk4Css styles core widgets", () => {
     twilight,
     resolveAccent("twilight", "green"),
     accentOn("twilight"),
+    "green",
   );
   for (const selector of [
     "button",
@@ -147,6 +150,7 @@ test("every sidebar row surface has a :selected restatement", () => {
     midnight,
     resolveAccent("midnight", "blue"),
     accentOn("midnight"),
+    "blue",
   );
   const rowSelectors = new Set(
     [...css.matchAll(/^(\.[\w.-]+ row)[,{ ]/gm)].map((m) => m[1]),

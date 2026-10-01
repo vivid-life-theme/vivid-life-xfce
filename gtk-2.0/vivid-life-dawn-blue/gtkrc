@@ -45,7 +45,7 @@ class "GtkWidget" style "vivid-life-default"
 # Naming bg[NORMAL] as the control boundary is the only lever a
 # non-engine gtkrc has for a frame outline.
 style "vivid-life-frame" {
-  bg[NORMAL] = "#404040"
+  bg[NORMAL] = "#636363"
 }
 
 class "GtkFrame" style "vivid-life-frame"
@@ -136,7 +136,7 @@ widget_class "*<GtkMenuBar>.<GtkMenuItem>*" style "vivid-life-menuitem"
 # 3:1 is not a licence to be invisible. control_border is derived to clear
 # 3:1 against the surfaces and measures 3.10:1 here at worst.
 style "vivid-life-menu-separator" {
-  bg[NORMAL] = "#404040"
+  bg[NORMAL] = "#636363"
 }
 
 widget_class "*<GtkSeparatorMenuItem>*" style "vivid-life-menu-separator"

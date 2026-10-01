@@ -69,6 +69,7 @@ function contextFor(flavor, variant) {
     flavorBlock(flavor),
     resolveAccent(flavor, variant),
     accentOn(flavor),
+    variant,
   );
 }
 
@@ -272,8 +273,8 @@ test("every @vl_* name referenced in gtk3/gtk4 CSS is defined", () => {
   const accent = resolveAccent("midnight", "blue");
   const on = accentOn("midnight");
   const renderers = {
-    gtk3: renderGtk3Css(b, accent, on),
-    gtk4: renderGtk4Css(b, accent, on),
+    gtk3: renderGtk3Css(b, accent, on, "blue"),
+    gtk4: renderGtk4Css(b, accent, on, "blue"),
   };
   for (const [target, css] of Object.entries(renderers)) {
     for (const name of undefinedNames(css)) {

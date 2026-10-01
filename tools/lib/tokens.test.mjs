@@ -7,7 +7,7 @@ import {
   flavorBlock,
   resolveAccent,
   accentOn,
-  controlColors,
+  rawTokens,
 } from "./tokens.mjs";
 import { contrastRatio } from "./contrast.mjs";
 
@@ -61,37 +61,16 @@ test("accentOn is dark text for dark flavors, light text for light flavors", () 
   assert.equal(accentOn("noon"), "#f5f5f5");
 });
 
-test("controlColors picks the first candidate clearing 3:1 on every control surface", () => {
-  // Expected per flavor, computed from the pinned token set:
-  //   midnight  border.strong/#737373 and fg_subtle/#737373 both fail on
-  //             bg_soft (2.19:1), so fg_muted wins.
-  //   twilight  border.strong/#0a0a0a fails on bg (1.91:1); fg_subtle clears.
-  //   dawn/noon border.strong clears everywhere.
-  const expected = {
-    midnight: { border: "#d4d4d4", source: "text.fg_muted" },
-    twilight: { border: "#a3a3a3", source: "text.fg_subtle" },
-    dawn: { border: "#404040", source: "border.strong" },
-    noon: { border: "#737373", source: "border.strong" },
-  };
-  for (const [flavor, want] of Object.entries(expected)) {
-    assert.deepEqual(controlColors(flavor), want, `flavor ${flavor}`);
-  }
-});
-
-test("the derived control border clears 3:1 on bg, bg_soft and bg_overlay", () => {
-  for (const flavor of ["midnight", "twilight", "dawn", "noon"]) {
+test("border.control clears the design system's 3:1 on every control_boundary surface", () => {
+  const { min, surfaces } = rawTokens.control_boundary;
+  for (const flavor of FLAVORS) {
     const b = flavorBlock(flavor);
-    const { border } = controlColors(flavor);
-    for (const surface of ["bg", "bg_soft", "bg_overlay"]) {
-      const ratio = contrastRatio(border, b.surface[surface]);
+    for (const surface of surfaces) {
+      const ratio = contrastRatio(b.border.control, b.surface[surface]);
       assert.ok(
-        ratio >= 3,
-        `${flavor} ${surface}: ${border} on ${b.surface[surface]} is ${ratio.toFixed(2)}:1`,
+        ratio >= min,
+        `${flavor} ${surface}: ${b.border.control} on ${b.surface[surface]} is ${ratio.toFixed(2)}:1`,
       );
     }
   }
-});
-
-test("controlColors accepts a flavor block as well as a flavor name", () => {
-  assert.deepEqual(controlColors(flavorBlock("noon")), controlColors("noon"));
 });

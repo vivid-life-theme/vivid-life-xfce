@@ -1,18 +1,20 @@
-import { controlColors, rawTokens } from "../lib/tokens.mjs";
+import { rawTokens } from "../lib/tokens.mjs";
 
 // The single argument bag every template module receives. Modules must not
 // reach past this into the raw token set — anything they need belongs here,
 // so the contrast gate can see the same values the CSS does.
-export function buildContext(flavorBlock, accentHex, accentOnHex) {
+export function buildContext(flavorBlock, accentHex, accentOnHex, variant) {
   return {
     surface: flavorBlock.surface,
     text: flavorBlock.text,
     border: flavorBlock.border,
     semantic: flavorBlock.semantic,
     state: flavorBlock.state,
+    // Text selection is an accent-hued overlay, so it differs per variant.
+    selection: flavorBlock.overlay[variant].selection.flat,
     accent: accentHex,
     accentOn: accentOnHex,
-    control: controlColors(flavorBlock),
+    control: { border: flavorBlock.border.control },
     // Geometry comes from the design system's scales for the same reason
     // colour does: a hardcoded 6px is drift that no gate can catch. Modules
     // written before this existed still carry literal values; they are not

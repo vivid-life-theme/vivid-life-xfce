@@ -6,15 +6,15 @@
 @define-color vl_bg_overlay #404040;
 @define-color vl_fg #f5f5f5;
 @define-color vl_fg_muted #d4d4d4;
-@define-color vl_fg_subtle #737373;
+@define-color vl_fg_subtle #999999;
 @define-color vl_fg_disabled #525252;
 @define-color vl_border #404040;
 @define-color vl_border_subtle #262626;
 @define-color vl_border_strong #737373;
-@define-color vl_control_border #d4d4d4;
+@define-color vl_control_border #8f8f8f;
 @define-color vl_accent #f97316;
 @define-color vl_accent_on #171717;
-@define-color vl_selection #2a2f3a;
+@define-color vl_selection #4a2215;
 @define-color vl_success #bef264;
 @define-color vl_warning #fde047;
 @define-color vl_danger #fca5a5;
@@ -686,8 +686,8 @@ expander title:hover arrow {
   color: @vl_accent;
 }
 
-/* Text selection (entry/textview) only — the design system's state.selection
-   token is a deliberately muted blend, distinct from the row/menu-item
+/* Text selection (entry/textview) only — the design system's selection
+   overlay is a deliberately muted blend, distinct from the row/menu-item
    "selected" affordance below. */
 selection {
   background-color: @vl_selection;

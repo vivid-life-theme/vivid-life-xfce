@@ -1,6 +1,6 @@
 export function render(ctx) {
-  return `/* Text selection (entry/textview) only — the design system's state.selection
-   token is a deliberately muted blend, distinct from the row/menu-item
+  return `/* Text selection (entry/textview) only — the design system's selection
+   overlay is a deliberately muted blend, distinct from the row/menu-item
    "selected" affordance below. */
 selection {
   background-color: @vl_selection;
@@ -57,7 +57,7 @@ export function contrastPairs(ctx) {
     {
       label: "text selection",
       fg: ctx.text.fg,
-      bg: ctx.state.selection,
+      bg: ctx.selection,
       rule: "text",
     },
     {
