@@ -12,6 +12,7 @@ test("renderGtk3Css embeds the flavor surface/text colors", () => {
     midnight,
     resolveAccent("midnight", "purple"),
     accentOn("midnight"),
+    "purple",
   );
   assert.match(css, /@define-color vl_bg #171717;/);
   assert.match(css, /@define-color vl_fg #f5f5f5;/);
@@ -23,6 +24,7 @@ test("renderGtk3Css embeds the resolved accent for the variant", () => {
     midnight,
     resolveAccent("midnight", "purple"),
     accentOn("midnight"),
+    "purple",
   );
   assert.match(css, /@define-color vl_accent #d8b4fe;/);
   assert.match(css, /@define-color vl_accent_on #171717;/);
@@ -34,6 +36,7 @@ test("renderGtk3Css styles core widgets", () => {
     dawn,
     resolveAccent("dawn", "blue"),
     accentOn("dawn"),
+    "blue",
   );
   for (const selector of [
     "button",
@@ -129,6 +132,7 @@ test("a GTK3 list box gets the sunk surface, not transparency", () => {
     flavorBlock("noon"),
     resolveAccent("noon", "red"),
     accentOn("noon"),
+    "red",
   );
   const sunkRule = css.match(/^treeview\.view,[^{]*\{[^}]*\}/m)?.[0] ?? "";
   assert.ok(

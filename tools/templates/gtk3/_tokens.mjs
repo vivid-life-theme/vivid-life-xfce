@@ -13,7 +13,7 @@ export function render(ctx) {
 @define-color vl_control_border ${ctx.control.border};
 @define-color vl_accent ${ctx.accent};
 @define-color vl_accent_on ${ctx.accentOn};
-@define-color vl_selection ${ctx.state.selection};
+@define-color vl_selection ${ctx.selection};
 @define-color vl_success ${ctx.semantic.success};
 @define-color vl_warning ${ctx.semantic.warning};
 @define-color vl_danger ${ctx.semantic.danger};
