@@ -1,6 +1,23 @@
-# Vivid Life Xfce
+# Vivid Life Theme — Xfce
 
-A port of the [Vivid Life Theme](https://github.com/vivid-life-theme/vivid-life-design-system) design system to Xfce: GTK2, GTK3, GTK4, and Xfwm4 themes across 4 flavors (Midnight, Twilight, Dawn, Noon) × 6 variants (Red, Orange, Yellow, Green, Blue, Purple) — 24 combinations total, per GTK/window-manager target.
+A multi-flavor desktop theme for [Xfce](https://xfce.org/): GTK2, GTK3, GTK4 and Xfwm4 themes, plus an installer that sniffs out which of those you actually have. **4 flavors × 6 variants = 24 themes** per target, all WCAG AA verified, so your eyes never have to file a bug report. Generated from the [Vivid Life design-system foundation](https://github.com/vivid-life-theme/vivid-life-design-system): colors and contrast ratios come from a single source of truth.
+
+> **Status:** pre-release. Everything below works, but there's no tagged release yet, so expect the occasional rough edge.
+
+## Flavors
+
+In time-of-day order:
+
+| Flavor       | Type  |
+| ------------ | ----- |
+| **Midnight** | dark  |
+| **Twilight** | dark  |
+| **Dawn**     | light |
+| **Noon**     | light |
+
+## Variants
+
+Each flavor comes in six accent variants: **Red · Orange · Yellow · Green · Blue · Purple**. The variant re-tints the accent (selections, focus, highlighted controls); surfaces stay put across variants.
 
 ## Install
 
@@ -10,7 +27,7 @@ cd vivid-life-xfce
 ./install.sh
 ```
 
-`install.sh` auto-detects which of GTK2, GTK3, GTK4, and Xfwm4 you have installed and only offers to install matching targets. It prompts for a flavor and variant, then copies the theme into `~/.themes/`.
+`install.sh` auto-detects which of GTK2, GTK3, GTK4 and Xfwm4 you have installed and installs for every target it finds; pass `--targets=…` to pick specific ones instead. No point shipping GTK2 themes to a machine that hasn't seen GTK2 since the Obama administration. It prompts for a flavor and variant, then copies the theme into `~/.themes/`.
 
 Non-interactive install:
 
@@ -32,26 +49,32 @@ Preview what would happen without copying anything:
 
 Run `./install.sh --help` for the full option list.
 
-After installing, select the theme in **Settings → Appearance** (GTK) and **Settings → Window Manager** (Xfwm4).
+### Choose a theme
+
+After installing, select the theme in **Settings → Appearance** (GTK) and **Settings → Window Manager** (Xfwm4). Themes are named `vivid-life-<flavor>-<variant>`.
+
+Default: **Midnight · Purple** (`vivid-life-midnight-purple`), matching the design system's overall default.
 
 ## Xfwm4 note: rounded corners need a compositor
 
-Window frames use 8px rounded top corners. Xfwm4 has no alpha channel without compositing, so on a system with the compositor disabled those corners render as opaque wedges rather than transparent curves. Xfce 4.18 enables its compositor by default (**Settings → Window Manager Tweaks → Compositor**), so this affects only setups that have deliberately turned it off.
+Window frames use 8px rounded top corners. Xfwm4 has no alpha channel without compositing, so on a system with the compositor disabled those corners render as opaque wedges rather than transparent curves. Less "rounded corners", more "tiny triangles of regret". Xfce 4.18 enables its compositor by default (**Settings → Window Manager Tweaks → Compositor**), so this affects only setups that have deliberately turned it off.
 
 ## GTK4 note
 
-GTK4 apps built on **libadwaita** largely ignore custom `gtk-4.0/gtk.css` stylesheets and follow libadwaita's own accent-color system instead. The GTK4 theme here is shipped best-effort for the (shrinking) set of GTK4 apps that don't opt into libadwaita theming.
+GTK4 apps built on **libadwaita** largely ignore custom `gtk-4.0/gtk.css` stylesheets and march to libadwaita's own accent-color drum instead. The GTK4 theme here is shipped best-effort for the (shrinking) set of GTK4 apps that don't opt into libadwaita theming.
 
 ## Icons and fonts (not bundled)
 
-This theme intentionally does not ship an icon set or font files — see the upstream design system's [iconography guidance](https://github.com/vivid-life-theme/vivid-life-design-system#iconography). `install.sh` prints these recommendations after installing:
+This theme intentionally ships no icon set or font files. See the upstream design system's [iconography guidance](https://github.com/vivid-life-theme/vivid-life-design-system#iconography). `install.sh` prints these recommendations after installing:
 
 - **Icons:** [Papirus](https://github.com/PapirusDevelopmentTeam/papirus-icon-theme) + [`papirus-folders`](https://github.com/PapirusDevelopmentTeam/papirus-folders) to tint folder icons to match your variant.
 - **Fonts:** [Atkinson Hyperlegible Next](https://www.brailleinstitute.org/freefont) (UI) and Atkinson Hyperlegible Mono (code/terminal), OFL-1.1 licensed.
 
-## For maintainers: regenerating themes
+While you're at it: [vivid-life-xfce4-terminal](https://github.com/vivid-life-theme/vivid-life-xfce4-terminal) themes the terminal to match, and the rest of the family lives at [github.com/vivid-life-theme](https://github.com/vivid-life-theme).
 
-Theme files under `gtk-2.0/`, `gtk-3.0/`, `gtk-4.0/`, `xfwm4/`, and `index/` are generated from `@vivid-life-theme/design-system` tokens — never hand-edited. Window-button glyphs are read from that package's `assets/glyphs/` at generate time, so a new glyph must land upstream and be released before it can be used here.
+## Contributing
+
+Theme files under `gtk-2.0/`, `gtk-3.0/`, `gtk-4.0/`, `xfwm4/` and `index/` are generated from `@vivid-life-theme/design-system` tokens. Never hand-edit them: the next `npm run generate` will flatten your changes faster than you can type `git blame`. If you need a color or token that isn't in the foundation, that's a foundation gap; open an issue against [vivid-life-design-system](https://github.com/vivid-life-theme/vivid-life-design-system) rather than papering over it here. Window-button glyphs are read from that package's `assets/glyphs/` at generate time, so a new glyph must land upstream and be released before it can be used here.
 
 After cloning — and after any pull that moves the design-system pin in `package.json` — install the pinned dependencies before running anything:
 
