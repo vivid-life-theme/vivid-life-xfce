@@ -2,7 +2,18 @@
   "name": "vivid-life-xfce",
   "version": "0.1.0",
   "private": true,
-  "description": "Vivid Life Theme port for Xfce (GTK2/GTK3/GTK4 + Xfwm4) with an auto-detecting installer.",
+  "description": "A multi-flavor desktop theme for Xfce (GTK2, GTK3, GTK4, Xfwm4). 4 flavors × 6 variants = 24 themes. WCAG AA verified.",
+  "keywords": [
+    "xfce",
+    "xfwm4",
+    "gtk",
+    "gtk-theme",
+    "theme",
+    "color-theme",
+    "wcag",
+    "accessibility",
+    "vivid-life"
+  ],
   "type": "module",
   "engines": {
     "node": ">=20"
