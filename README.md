@@ -27,7 +27,7 @@ cd vivid-life-xfce
 ./install.sh
 ```
 
-`install.sh` auto-detects which of GTK2, GTK3, GTK4 and Xfwm4 you have installed and only offers matching targets. No point shipping GTK2 themes to a machine that hasn't seen GTK2 since the Obama administration. It prompts for a flavor and variant, then copies the theme into `~/.themes/`.
+`install.sh` auto-detects which of GTK2, GTK3, GTK4 and Xfwm4 you have installed and installs for every target it finds; pass `--targets=…` to pick specific ones instead. No point shipping GTK2 themes to a machine that hasn't seen GTK2 since the Obama administration. It prompts for a flavor and variant, then copies the theme into `~/.themes/`.
 
 Non-interactive install:
 
