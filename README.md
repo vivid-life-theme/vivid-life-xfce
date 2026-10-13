@@ -144,4 +144,4 @@ docs/superpowers/plans/                 implementation plans for this port
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Fonts recommended above are separately licensed (OFL-1.1) and not distributed here.
+MIT. See [LICENSE](LICENSE). Fonts recommended above are separately licensed (OFL-1.1) and not distributed here.
