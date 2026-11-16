@@ -5,7 +5,7 @@ import { flavorBlock } from "../lib/tokens.mjs";
 
 test("renderIndexTheme names the theme in title case", () => {
   const out = renderIndexTheme("midnight", "blue", flavorBlock("midnight"));
-  assert.match(out, /^Name=Vivid Life Midnight Blue$/m);
+  assert.match(out, /^Name=Vivid Life · Midnight · Blue$/m);
   assert.match(out, /^Type=X-GNOME-Metatheme$/m);
 });
 

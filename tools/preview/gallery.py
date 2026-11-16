@@ -205,8 +205,8 @@ def lists_section():
 
     store = Gtk.ListStore(str, str)
     for name, targets in (
-        ("Vivid Life Midnight Blue", "Gtk3, Gtk2, Xfwm4"),
-        ("Vivid Life Noon Red", "Gtk3, Gtk2, Xfwm4"),
+        ("Vivid Life · Midnight · Blue", "Gtk3, Gtk2, Xfwm4"),
+        ("Vivid Life · Noon · Red", "Gtk3, Gtk2, Xfwm4"),
         ("Adwaita", "Gtk3"),
     ):
         store.append([name, targets])

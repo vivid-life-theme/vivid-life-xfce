@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Complete Xfwm4 window frame: title segments, edges, corners, and all six buttons in active/inactive/prelight/pressed states plus toggled variants for stick, shade and maximize (60 assets per theme).
-- `index.theme` per flavor/variant, installed at the theme root, so themes show a proper name in appearance dialogs.
+- `index.theme` per flavor/variant, installed at the theme root, so themes show a readable name such as `Vivid Life · Midnight · Purple` in the Appearance dialog, matching the other ports.
 - WCAG AA contrast test covering the foreground/background pairs the GTK2, GTK3, GTK4 and Xfwm4 templates emit, across all 24 combinations, gated at 1.4.3's 4.5:1 for text.
 - WCAG 1.4.11 (non-text UI, 3:1) test covering the GTK3/GTK4 scrollbar slider against its track, across all four flavors.
 
