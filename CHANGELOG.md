@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Design-system dependency bumped to 0.14.1 and all themes regenerated. Midnight and Twilight GTK3 selections are now a visible tint in the accent's hue instead of a dark smudge (the design system holds text on them to 3:1). The variant-coloured frame from 0.14.0 is not applied to Xfce yet.
+
 ### Added
 
 - Complete Xfwm4 window frame: title segments, edges, corners, and all six buttons in active/inactive/prelight/pressed states plus toggled variants for stick, shade and maximize (60 assets per theme).
